@@ -74,6 +74,7 @@ jobs:
           if ! ls src/SmartSis.Api/Shared/Data/Migrations/*.cs >/dev/null 2>&1; then
             echo "::warning::No migration committed. Generating a temporary InitialCreate for the smoke test. Commit one: dotnet ef migrations add InitialCreate -p src/SmartSis.Api -o Shared/Data/Migrations"
             dotnet tool restore
+            dotnet restore SmartSis.slnx
             dotnet ef migrations add InitialCreate -p src/SmartSis.Api -o Shared/Data/Migrations
           fi
 
