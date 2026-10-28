@@ -13,7 +13,27 @@ Web rebuild of the earlier mobile app. Team: Hussein Najdi, Hussein Haydar, Mahd
 | AI | Python, FastAPI | `ai-service/` |
 | SQL | SSMS scripts generated from migrations | `database/` |
 
-## Run it locally (Windows, no Docker)
+## Run with Docker (easiest)
+
+Needs Docker Desktop only.
+
+```powershell
+copy .env.example .env        # set SA_PASSWORD and JWT_KEY
+docker compose up --build
+```
+
+| What | Where |
+|---|---|
+| Web | http://localhost:3000 |
+| API docs | http://localhost:5080/scalar |
+| SQL Server (SSMS) | server `localhost,14333`, SQL auth, user `sa`, password from `.env` |
+
+The API container applies EF migrations and seeds simulated data on start, so the
+`InitialCreate` migration must exist in the repo (see step 1 below; generate it once and commit it).
+Add the AI service with `docker compose --profile ai up --build`.
+Wipe the database: `docker compose down -v`.
+
+## Run natively (Windows)
 
 **Prerequisites:** .NET 10 SDK, SQL Server (Express/Developer) + SSMS, Node 20+, Python 3.12+.
 

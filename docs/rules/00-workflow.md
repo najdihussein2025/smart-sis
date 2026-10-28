@@ -16,7 +16,7 @@
 - Simulated data only (SR-23). Never paste real student names, IDs, emails or grades.
 
 ## When done
-- `dotnet build` and `dotnet test` pass; `npm run build` passes if frontend was touched.
+- `dotnet build` and `dotnet test` pass; `docker compose up --build` still starts if you touched a Dockerfile, compose or config keys; `npm run build` passes if frontend was touched.
 - Every new `Rules/` class has unit tests.
 - Schema changed → new migration + regenerate `database/02_schema.sql`.
 - Business decision changed → update `docs/PROJECT.md` (and this rules folder if it affects how we work).

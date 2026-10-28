@@ -34,7 +34,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 | Auth | JWT bearer tokens, role-based policies, BCrypt password hashing |
 | Validation | FluentValidation |
 | Tests | xUnit + WebApplicationFactory |
-| Containers | **None** (no Docker) |
+| Containers | **Docker Compose**: SQL Server, API, web (nginx), AI service (`--profile ai`). Running natively without Docker also works |
 
 ---
 
@@ -315,8 +315,10 @@ smart-sis/
 ├── backend/              SmartSis.slnx
 │   ├── src/SmartSis.Api/
 │   └── tests/SmartSis.Tests/
-├── frontend/             React + Vite + TypeScript
-└── ai-service/           Python FastAPI
+├── frontend/             React + Vite + TypeScript (Dockerfile + nginx.conf)
+├── ai-service/           Python FastAPI
+├── docker-compose.yml    local stack: db + api + web (+ ai)
+└── .env.example          compose settings (copy to .env)
 ```
 EF migrations are the source of truth for the schema. `database/02_schema.sql` is generated from them for SSMS.
 

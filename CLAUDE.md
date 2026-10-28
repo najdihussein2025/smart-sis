@@ -37,6 +37,10 @@ database/                                      SSMS scripts generated from EF mi
 ## Commands
 
 ```bash
+# whole stack in Docker (from repo root)
+docker compose up --build                         # web :3000, api :5080, sql :14333
+docker compose down -v                            # stop + wipe database
+
 # backend (from backend/)
 dotnet build
 dotnet test
