@@ -5,7 +5,7 @@ using SmartSis.Api.Features.Cart;
 using SmartSis.Api.Features.Chat;
 using SmartSis.Api.Features.Courses;
 using SmartSis.Api.Features.Dashboard;
-using SmartSis.Api.Features.Enrollment;
+using SmartSis.Api.Features.Enrollments;
 using SmartSis.Api.Features.Finance;
 using SmartSis.Api.Features.Grading;
 using SmartSis.Api.Features.Lookups;
@@ -30,7 +30,7 @@ public static class FeatureRegistration
         .AddSectionsFeature()
         .AddScheduleFeature()
         .AddCartFeature()
-        .AddEnrollmentFeature()
+        .AddEnrollmentsFeature()
         .AddGradingFeature()
         .AddAttendanceFeature()
         .AddFinanceFeature()
