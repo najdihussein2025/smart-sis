@@ -13,6 +13,7 @@ Claude reads (through `CLAUDE.md`).
 | Tests and test-case mapping | [testing.md](rules/testing.md) |
 | React structure, data, forms, UI | [frontend.md](rules/frontend.md) |
 | Python AI service boundaries | [ai-service.md](rules/ai-service.md) |
+| Docker stack and CI | [docker.md](rules/docker.md) |
 
 ## The eight rules everyone remembers
 1. A feature owns its entities; others go through its service.

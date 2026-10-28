@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+      - run: dotnet restore SmartSis.slnx
+      - run: dotnet build SmartSis.slnx --no-restore -c Release
+      - run: dotnet test SmartSis.slnx --no-build -c Release --logger "console;verbosity=normal"
+
+  frontend:
+    name: Frontend (type-check + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  ai-service:
+    name: AI service (test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+
+  docker:
+    name: Docker (build images + smoke test the stack)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, ai-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+
+      # The API container builds the tables from EF migrations. If none are committed yet,
+      # generate a throwaway one here so the smoke test can run. It is never committed.
+      - name: Ensure an EF migration exists
+        working-directory: backend
+        run: |
+          if ! ls src/SmartSis.Api/Shared/Data/Migrations/*.cs >/dev/null 2>&1; then
+            echo "::warning::No migration committed. Generating a temporary InitialCreate for the smoke test. Commit one: dotnet ef migrations add InitialCreate -p src/SmartSis.Api -o Shared/Data/Migrations"
+            dotnet tool restore
+            dotnet ef migrations add InitialCreate -p src/SmartSis.Api -o Shared/Data/Migrations
+          fi
+
+      - name: Create .env
+        run: cp .env.example .env
+
+      - name: Build images
+        run: docker compose --profile ai build
+
+      - name: Start stack
+        run: docker compose up -d
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:5080/health >/dev/null; then echo "API up after $((i*3))s"; exit 0; fi
+            sleep 3
+          done
+          echo "API did not start"; exit 1
+
+      - name: Smoke test (through nginx → API → SQL Server)
+        run: |
+          set -e
+          curl -fsS http://localhost:3000/ | grep -q '<div id="root">'
+          curl -fsS http://localhost:3000/student/schedule | grep -q '<div id="root">'   # SPA fallback
+          TOKEN=$(curl -fsS -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"universityId":3001,"password":"Pass@1234"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["accessToken"])')
+          curl -fsS http://localhost:3000/api/profile -H "Authorization: Bearer $TOKEN" | grep -q '"majorName":"Computer Science"'
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' -d '{"universityId":3001,"password":"wrong"}')
+          test "$code" = "401"
+          echo "Smoke test passed"
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v

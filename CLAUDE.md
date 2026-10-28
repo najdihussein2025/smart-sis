@@ -22,6 +22,7 @@ same commit as the code.
 | `frontend/` | @docs/rules/frontend.md |
 | `ai-service/` | @docs/rules/ai-service.md |
 | `database/` | @docs/rules/database.md |
+| Dockerfiles, `docker-compose.yml`, `.github/` | @docs/rules/docker.md |
 
 ## Quick map
 
