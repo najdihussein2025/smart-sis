@@ -341,9 +341,9 @@ Features/<Feature>/
 └── Data/                    IEntityTypeConfiguration per entity (keys, indexes, enum → nvarchar)
 ```
 
-Example, Enrollment in full:
+Example, Enrollments in full (folder is plural because a namespace called `Enrollment` would clash with the `Enrollment` entity class):
 ```
-Features/Enrollment/
+Features/Enrollments/
 ├── EnrollmentModule.cs
 ├── Controllers/EnrollmentController.cs          enroll, swap, drop, my courses
 ├── Interfaces/IEnrollmentService.cs, IEnrollmentRepository.cs
@@ -370,12 +370,12 @@ Features and the entities each one owns (38 total):
 | Sections | Section, SectionMeeting |
 | Schedule | (read-only, none) |
 | Cart | CartItem |
-| Enrollment | Enrollment, EnrollmentAction |
+| Enrollments | Enrollment, EnrollmentAction |
 | Grading | GradeComponent, StudentGrade, TermResult |
 | Attendance | AttendanceSession, AttendanceRecord, AbsenceAlert |
 | Finance | ChargeBatch, Charge, Payment |
 | Announcements | Announcement |
-| Notifications | Notification, EmailOutbox |
+| Notifications | Notification, EmailOutboxMessage (table `EmailOutbox`) |
 | Support | SupportCategory, SupportRequest, SupportMessage |
 | Dashboard | (read-only, none) |
 | Chat | ChatConversation, ChatMessage, KnowledgeDocument, KnowledgeChunk |

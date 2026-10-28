@@ -1,0 +1,21 @@
+@api = http://localhost:5080
+
+### Login as the simulated student
+# @name login
+POST {{api}}/api/auth/login
+Content-Type: application/json
+
+{ "universityId": 3001, "password": "Pass@1234" }
+
+### Who am I
+GET {{api}}/api/auth/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Forgot password (reset link is printed in the API console in Development)
+POST {{api}}/api/auth/forgot-password
+Content-Type: application/json
+
+{ "universityId": 3001 }
+
+### Health
+GET {{api}}/health

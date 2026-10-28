@@ -3,7 +3,7 @@
 Condensed from PROJECT.md §4 and §5.10. Each rule says **where** it lives. If code enforces a rule
 somewhere else, it's in the wrong place.
 
-## Enrollment (feature: Enrollment, rules in `Rules/EnrollmentPolicy.cs`, `Rules/SwapPolicy.cs`)
+## Enrollment (feature: Enrollments, rules in `Rules/EnrollmentPolicy.cs`, `Rules/SwapPolicy.cs`)
 | # | Rule | Where |
 |---|---|---|
 | E1 | Enrollment window: enroll + swap only. Add/Drop window: add + drop + swap. Outside both: locked | Policy, dates from `Terms` |

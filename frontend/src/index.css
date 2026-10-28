@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+/* Design tokens. Components use these names (bg-surface, text-ink, bg-brand…), never raw hex. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+
+  --color-brand: #14213d;
+  --color-brand-600: #1f3160;
+  --color-brand-50: #eef1f8;
+  --color-accent: #c8963e;
+  --color-accent-soft: #f6ecda;
+
+  --color-canvas: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-ink: #1b1f2a;
+  --color-muted: #646b7a;
+  --color-line: #e4e2dc;
+
+  --color-success: #2f7d4f;
+  --color-success-soft: #e5f2ea;
+  --color-warning: #b86e12;
+  --color-warning-soft: #fbefdc;
+  --color-danger: #b3362f;
+  --color-danger-soft: #f9e5e3;
+
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgb(20 33 61 / 0.04), 0 4px 16px rgb(20 33 61 / 0.05);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
