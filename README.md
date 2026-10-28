@@ -26,7 +26,7 @@ docker compose up --build
 |---|---|
 | Web | http://localhost:3000 |
 | API docs | http://localhost:5080/scalar |
-| SQL Server (SSMS) | server `localhost,14333`, SQL auth, user `sa`, password from `.env` |
+| SQL Server (SSMS) | server `127.0.0.1,14333`, SQL auth, user `sa`, password from `.env` |
 
 The API container applies EF migrations and seeds simulated data on start, so the
 `InitialCreate` migration must exist in the repo (see step 1 below; generate it once and commit it).

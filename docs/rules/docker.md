@@ -10,7 +10,7 @@ docker compose down -v          # stop + wipe the database
 ```
 | Service | Image / build | Port on your PC | Inside the network |
 |---|---|---|---|
-| `db` | `mcr.microsoft.com/mssql/server:2022-latest` | 14333 (SSMS: `localhost,14333`) | `db:1433` |
+| `db` | `mcr.microsoft.com/mssql/server:2022-latest` | 14333 (SSMS: `127.0.0.1,14333`) | `db:1433` |
 | `api` | `backend/Dockerfile` | 5080 (`/scalar`, `/health`) | `api:8080` |
 | `web` | `frontend/Dockerfile` (nginx) | 3000 | proxies `/api/` → `api:8080` |
 | `ai` | `ai-service/Dockerfile` (profile `ai`) | 8000 | `ai:8000` |

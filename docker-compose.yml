@@ -2,7 +2,7 @@
 #   copy .env.example .env      (then set the passwords)
 #   docker compose up --build
 # Web:  http://localhost:3000      API docs: http://localhost:5080/scalar
-# SSMS: server "localhost,14333", SQL auth, user "sa", password from .env
+# SSMS: server "127.0.0.1,14333", SQL auth, user "sa", password from .env
 
 name: smart-sis
 
