@@ -13,16 +13,18 @@ same commit as the code.
 @docs/rules/business-rules.md
 @docs/rules/security.md
 
-## Area rules (load the one you are working in)
+## Area rules (loaded only when needed)
 
-| Working in | Read |
+Each area has its own `CLAUDE.md` that imports its rules, so they load only when you work there.
+Don't `@`-import area rules here: every `@` import loads in every session and costs tokens.
+
+| Working in | Rules (via that folder's CLAUDE.md) |
 |---|---|
-| `backend/` | @docs/rules/backend.md and @docs/rules/database.md |
-| `backend/tests/` | @docs/rules/testing.md |
-| `frontend/` | @docs/rules/frontend.md |
-| `ai-service/` | @docs/rules/ai-service.md |
-| `database/` | @docs/rules/database.md |
-| Dockerfiles, `docker-compose.yml`, `.github/` | @docs/rules/docker.md |
+| `backend/` | docs/rules/backend.md, database.md, testing.md |
+| `frontend/` | docs/rules/frontend.md |
+| `ai-service/` | docs/rules/ai-service.md |
+| `database/` | docs/rules/database.md (read it yourself) |
+| Dockerfiles, `docker-compose.yml`, `.github/` | docs/rules/docker.md (read it yourself) |
 
 ## Quick map
 
