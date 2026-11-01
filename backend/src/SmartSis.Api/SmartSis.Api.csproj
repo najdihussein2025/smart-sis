@@ -3,7 +3,9 @@
   <PropertyGroup>
     <RootNamespace>SmartSis.Api</RootNamespace>
     <UserSecretsId>smartsis-api-7f3c1a2e</UserSecretsId>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- XML doc comments feed the OpenAPI document (/scalar). CS1591 = "missing comment", not required everywhere. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

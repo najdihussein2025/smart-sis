@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -82,7 +83,12 @@ public static class SharedRegistration
             services.AddSingleton<IEmailSender, LogEmailSender>();
 
         // Web
-        services.AddControllers(o => o.Filters.Add<FluentValidationFilter>());
+        // Enums travel as their names ("Elective", "AddDrop"), not numbers, in requests, responses and OpenAPI.
+        services.AddControllers(o => o.Filters.Add<FluentValidationFilter>())
+            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        // The OpenAPI generator reads these (minimal-API) options, not MVC's. Without this line the document
+        // still says "integer" and the generated frontend types disagree with the real responses.
+        services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
         services.AddProblemDetails();
         services.AddOpenApi();

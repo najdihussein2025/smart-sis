@@ -1,7 +1,7 @@
 # Smart SIS: Project Reference
 
 **AI-Assisted Student Information System for Antonine University**
-Document ID: HMH-SIS · Team: Hussein Najdi, Hussein Haydar, Mahdi Marmar · Last updated: 28 Oct 2026
+Document ID: HMH-SIS · Team: Hussein Najdi, Hussein Haydar, Mahdi Marmar · Last updated: 1 Nov 2026
 
 This file is the single reference for what the project is, what was decided, and how it is built. Read it before touching code or the database. If a decision changes, update this file.
 
@@ -95,6 +95,8 @@ Each term has two windows:
 - **Enrollment period:** students enroll from the cart and can **swap**. No dropping.
 - **Add/Drop period:** students can **add, drop and swap**.
 - Outside both windows, enrollment is locked.
+- **Window order:** the enrollment window comes first and add/drop starts no earlier than enrollment ends (`EnrollEnd <= AddDropStart`). Add/drop closes by the last day of the term (`AddDropEnd` on or before `EndDate`). Window times are stored and sent as UTC.
+- **One current term** at a time. Making a term current unsets the previous one; a term can also be unset, leaving no current term until another is chosen.
 
 ### Enrollment checks (enroll and swap)
 1. The relevant window is open.
@@ -435,6 +437,8 @@ ai-service/app/
 6. **Errors** go through `ExceptionMiddleware` as ProblemDetails: 400 validation, 401 bad login, 403 forbidden, 404 not found, 409 business rule.
 7. Each feature registers itself in `<Feature>Module.cs`; `Program.cs` stays short.
 8. Names follow the BRD vocabulary: Term, Section, Enrollment, Component, Charge, Payment.
+9. **Enums are sent as strings** in JSON and in the OpenAPI document (`"Elective"`, `"AddDrop"`), never as numbers.
+10. **Admin endpoints** live under `/api/admin/...` with `[Authorize(Policy = Policies.Admin)]` on the controller. Student and instructor read endpoints for the same data are separate controllers.
 
 The detailed, enforceable version of these lives in `docs/rules/`.
 
