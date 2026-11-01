@@ -123,3 +123,64 @@ Content-Type: application/json
   "prerequisiteIds": [3],
   "majors": [ { "majorId": 1, "type": "Major" } ]
 }
+
+### Admin: search users (status = Active | Inactive | All, default Active)
+GET {{api}}/api/admin/users?search=demo&role=Student&status=All&page=1&pageSize=20
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: create a student (simulated data only, SR-23)
+# @name createStudent
+POST {{api}}/api/admin/users
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "universityId": 3002,
+  "email": "student3002@smartsis.local",
+  "fullName": "Simulated Student Two",
+  "phone": null,
+  "dateOfBirth": "2005-03-14",
+  "role": "Student",
+  "initialPassword": "Welcome2027",
+  "student": { "majorId": 1, "campusId": 1, "enrollmentDate": "2026-09-01", "maxCreditsOverride": null },
+  "instructor": null
+}
+
+### Admin: create an instructor
+POST {{api}}/api/admin/users
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "universityId": 2002,
+  "email": "instructor2002@smartsis.local",
+  "fullName": "Simulated Instructor Two",
+  "phone": null,
+  "dateOfBirth": null,
+  "role": "Instructor",
+  "initialPassword": "Welcome2027",
+  "student": null,
+  "instructor": { "departmentId": 1 }
+}
+
+### Admin: get one user (works for deactivated users too)
+GET {{api}}/api/admin/users/{{createStudent.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: update a user (University ID, role and password don't change)
+PUT {{api}}/api/admin/users/{{createStudent.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "email": "student3002@smartsis.local",
+  "fullName": "Simulated Student Two",
+  "phone": "+961 1 000000",
+  "dateOfBirth": "2005-03-14",
+  "student": { "majorId": 1, "campusId": 1, "enrollmentDate": "2026-09-01", "maxCreditsOverride": 21 },
+  "instructor": null
+}
+
+### Admin: deactivate a user (204; the user can no longer log in)
+POST {{api}}/api/admin/users/{{createStudent.response.body.$.id}}/deactivate
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
