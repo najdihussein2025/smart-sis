@@ -59,6 +59,8 @@ public sealed class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionM
         return p;
     }
 
+    /// <summary>"Student.MajorId" → "student.majorId", "Majors[0].Type" → "majors[0].type" (matches the JSON field names).</summary>
     private static string ToCamel(string s) =>
-        string.IsNullOrEmpty(s) ? s : char.ToLowerInvariant(s[0]) + s[1..];
+        string.Join('.', s.Split('.').Select(part =>
+            string.IsNullOrEmpty(part) ? part : char.ToLowerInvariant(part[0]) + part[1..]));
 }
