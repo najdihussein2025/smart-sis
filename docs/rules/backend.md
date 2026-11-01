@@ -48,7 +48,7 @@ Create only the folders you use. Namespace = folder path: `SmartSis.Api.Features
 Throw, don't return error codes. `ExceptionMiddleware` maps:
 | Exception | Status |
 |---|---|
-| `FluentValidation.ValidationException` | 400 ValidationProblemDetails |
+| `FluentValidation.ValidationException` (also model-binding / JSON errors, via `InvalidModelStateHandler`) | 400 ValidationProblemDetails, camelCase field keys |
 | `UnauthorizedException` | 401 |
 | `ForbiddenException` | 403 |
 | `NotFoundException` | 404 |
