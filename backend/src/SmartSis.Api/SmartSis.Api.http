@@ -69,3 +69,57 @@ Content-Type: application/json
   "addDropEnd": "2027-02-12T21:00:00Z",
   "isCurrent": true
 }
+
+### Admin: search courses (code or name, paged, ordered by code)
+GET {{api}}/api/admin/courses?search=csc&page=1&pageSize=20
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: create a course (code "csc401" is stored as "CSC 401"; type is "Major" or "Elective")
+# @name createCourse
+POST {{api}}/api/admin/courses
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "code": "csc401",
+  "name": "Software Engineering",
+  "credits": 3,
+  "description": "Requirements, design, testing and teamwork on a simulated project.",
+  "departmentId": 1,
+  "prerequisiteIds": [2],
+  "majors": [ { "majorId": 1, "type": "Major" } ]
+}
+
+### Admin: get one course with prerequisites and majors
+GET {{api}}/api/admin/courses/{{createCourse.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: update a course (replaces both lists; [] clears them)
+PUT {{api}}/api/admin/courses/{{createCourse.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "code": "CSC 401",
+  "name": "Software Engineering",
+  "credits": 4,
+  "description": null,
+  "departmentId": 1,
+  "prerequisiteIds": [2, 3],
+  "majors": [ { "majorId": 1, "type": "Elective" } ]
+}
+
+### Admin: prerequisite cycle → 409 prerequisite_cycle (seed: CSC 310 → CSC 210 → CSC 101)
+PUT {{api}}/api/admin/courses/1
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "code": "CSC 101",
+  "name": "Introduction to Programming",
+  "credits": 3,
+  "description": null,
+  "departmentId": 1,
+  "prerequisiteIds": [3],
+  "majors": [ { "majorId": 1, "type": "Major" } ]
+}

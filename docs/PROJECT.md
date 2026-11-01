@@ -98,6 +98,11 @@ Each term has two windows:
 - **Window order:** the enrollment window comes first and add/drop starts no earlier than enrollment ends (`EnrollEnd <= AddDropStart`). Add/drop closes by the last day of the term (`AddDropEnd` on or before `EndDate`). Window times are stored and sent as UTC.
 - **One current term** at a time. Making a term current unsets the previous one; a term can also be unset, leaving no current term until another is chosen.
 
+### Courses and prerequisites
+- **Course codes** are 2–5 letters, an optional space, 3 digits and an optional letter. They are stored upper case with one space (`csc101` → `CSC 101`) and are unique after that normalization.
+- **No prerequisite cycles.** A course can't be its own prerequisite, and saving a course's prerequisites is rejected (409) if it would make a course depend on itself through a chain (e.g. CSC 101 → CSC 310 when CSC 310 → CSC 210 → CSC 101). Shared prerequisites (a diamond) are fine.
+- Saving a course **replaces** its prerequisite list and its major/elective list with what was sent.
+
 ### Enrollment checks (enroll and swap)
 1. The relevant window is open.
 2. **Credit cap:** default **18 credits per term**, set on the major when the admin creates it. The admin can override it per student.
