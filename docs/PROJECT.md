@@ -435,6 +435,7 @@ ai-service/app/
 6. **Errors** go through `ExceptionMiddleware` as ProblemDetails: 400 validation, 401 bad login, 403 forbidden, 404 not found, 409 business rule.
 7. Each feature registers itself in `<Feature>Module.cs`; `Program.cs` stays short.
 8. Names follow the BRD vocabulary: Term, Section, Enrollment, Component, Charge, Payment.
+9. **Enums are sent as strings** in JSON and in the OpenAPI document (`"Elective"`, `"AddDrop"`), never as numbers.
 
 The detailed, enforceable version of these lives in `docs/rules/`.
 
