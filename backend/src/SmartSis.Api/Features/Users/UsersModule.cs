@@ -10,7 +10,7 @@ public static class UsersModule
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserAccountService, UserAccountService>();
-        // TODO(phase-2): IUserAdminService for admin add / edit / deactivate.
+        services.AddScoped<IUserAdminService, UserAdminService>();
         return services;
     }
 }

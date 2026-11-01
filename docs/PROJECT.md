@@ -143,6 +143,13 @@ Each term has two windows:
 - Admin charges all students of a major in one action (a charge batch).
 - **Partial payments** are allowed; a charge is Pending → Partial → Paid based on the sum of its payments.
 
+### User accounts (admin)
+- The admin creates **students and instructors** only. Admin accounts are listed but can't be created, edited or deactivated through the API.
+- **University IDs** are 4–9 digits (1000–999999999) and never change. University ID and email are unique across **all** accounts, including deactivated ones; emails are stored trimmed and lower case.
+- The admin sets an **initial password** (same rule as reset password: 8+ characters with a letter and a number). It is hashed and never returned; the user can change it with forgot-password.
+- **Deactivation** sets `IsActive = false` and `DeletedAt`. The user can't log in (same "Invalid University ID or password." message), disappears from other features through the query filter, and stays visible to the admin. No reactivation yet. An admin can't deactivate their own account. A deactivated account can't be edited.
+- Known limit: a token issued before deactivation keeps working until it expires (8 h); `GET /api/auth/me` already rejects it. Depends on the refresh-token decision (§11).
+
 ### Data safety
 - **Users are never hard-deleted** (soft delete), so grades and payment history are kept.
 - Foreign keys use RESTRICT, never CASCADE.
