@@ -19,3 +19,53 @@ Content-Type: application/json
 
 ### Health
 GET {{api}}/health
+
+### ───────────── Admin ─────────────
+
+### Login as the simulated admin
+# @name adminLogin
+POST {{api}}/api/auth/login
+Content-Type: application/json
+
+{ "universityId": 1001, "password": "Pass@1234" }
+
+### Admin: list terms (newest start date first)
+GET {{api}}/api/admin/terms
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: create a term (window times are UTC, ending in Z)
+# @name createTerm
+POST {{api}}/api/admin/terms
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Spring 2027",
+  "startDate": "2027-02-01",
+  "endDate": "2027-06-15",
+  "enrollStart": "2027-01-18T06:00:00Z",
+  "enrollEnd": "2027-01-29T21:00:00Z",
+  "addDropStart": "2027-02-01T06:00:00Z",
+  "addDropEnd": "2027-02-12T21:00:00Z",
+  "isCurrent": false
+}
+
+### Admin: get one term
+GET {{api}}/api/admin/terms/{{createTerm.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: update a term and make it the current one (the previous current term is unset)
+PUT {{api}}/api/admin/terms/{{createTerm.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Spring 2027",
+  "startDate": "2027-02-01",
+  "endDate": "2027-06-20",
+  "enrollStart": "2027-01-18T06:00:00Z",
+  "enrollEnd": "2027-01-29T21:00:00Z",
+  "addDropStart": "2027-02-01T06:00:00Z",
+  "addDropEnd": "2027-02-12T21:00:00Z",
+  "isCurrent": true
+}
