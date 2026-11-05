@@ -11,10 +11,13 @@ import { useProfile } from '../hooks'
 
 function Row({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3 py-3.5">
-      <Icon className="size-[18px] text-muted" aria-hidden />
-      <span className="w-36 shrink-0 text-sm text-muted">{label}</span>
-      <span className="text-sm font-medium text-ink">{value}</span>
+    <div className="flex items-start gap-3 py-3.5">
+      <Icon className="mt-px size-[18px] shrink-0 text-muted" aria-hidden />
+      {/* On phones the label sits above the value, so a long email gets the full width. */}
+      <div className="min-w-0 flex-1 sm:flex sm:gap-3">
+        <span className="block text-sm text-muted sm:w-36 sm:shrink-0">{label}</span>
+        <span className="block text-sm font-medium text-ink [overflow-wrap:anywhere]">{value}</span>
+      </div>
     </div>
   )
 }

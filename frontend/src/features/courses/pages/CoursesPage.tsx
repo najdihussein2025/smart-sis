@@ -38,14 +38,17 @@ export function CoursesPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader eyebrow="Administration" title="Courses">
-          Codes, credits, prerequisites and the majors each course counts for.
-        </PageHeader>
-        <Button onClick={openNew}>
-          <Plus className="size-4" aria-hidden /> New course
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Administration"
+        title="Courses"
+        actions={
+          <Button onClick={openNew}>
+            <Plus className="size-4" aria-hidden /> New course
+          </Button>
+        }
+      >
+        Codes, credits, prerequisites and the majors each course counts for.
+      </PageHeader>
 
       {saved.message && (
         <div className="mb-4">
@@ -108,23 +111,29 @@ export function CoursesPage() {
         ) : (
           <>
             <TableScroll>
-              <table className="w-full min-w-[640px] text-left text-sm">
+              <table className="w-full text-left text-sm">
                 <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
                   <tr>
                     <th scope="col" className="px-5 py-3 font-medium">Code</th>
                     <th scope="col" className="px-5 py-3 font-medium">Name</th>
-                    <th scope="col" className="px-5 py-3 font-medium">Department</th>
-                    <th scope="col" className="px-5 py-3 font-medium text-right">Credits</th>
+                    <th scope="col" className="px-5 py-3 font-medium max-sm:hidden">Department</th>
+                    <th scope="col" className="px-5 py-3 font-medium text-right max-sm:hidden">Credits</th>
                     <th scope="col" className="px-5 py-3"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {courses.data.items.map((c) => (
                     <tr key={c.id}>
-                      <th scope="row" className="whitespace-nowrap px-5 py-3.5 font-medium text-ink">{c.code}</th>
-                      <td className="px-5 py-3.5 text-ink">{c.name}</td>
-                      <td className="px-5 py-3.5 text-muted" title={c.departmentName}>{c.departmentCode}</td>
-                      <td className="px-5 py-3.5 text-right tabular-nums text-muted">{c.credits}</td>
+                      <th scope="row" className="whitespace-nowrap px-5 py-3.5 font-medium text-ink max-sm:align-top max-sm:pl-4 max-sm:pr-2">{c.code}</th>
+                      <td className="px-5 py-3.5 text-ink">
+                        {c.name}
+                        {/* On phones the department and credits columns are hidden; show them under the name. */}
+                        <span className="mt-0.5 block text-xs text-muted sm:hidden">
+                          {c.departmentCode} · {c.credits} credits
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-muted max-sm:hidden" title={c.departmentName}>{c.departmentCode}</td>
+                      <td className="px-5 py-3.5 text-right tabular-nums text-muted max-sm:hidden">{c.credits}</td>
                       <td className="px-5 py-3.5 text-right">
                         <Button variant="ghost" className="h-8 px-2.5" onClick={() => setDialog({ open: true, courseId: c.id })} aria-label={`Edit ${c.code}`}>
                           <Pencil className="size-4" aria-hidden /> Edit

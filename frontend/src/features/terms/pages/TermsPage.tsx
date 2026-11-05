@@ -36,14 +36,17 @@ export function TermsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader eyebrow="Administration" title="Terms">
-          Each term has an enrollment window, then an add/drop window.
-        </PageHeader>
-        <Button onClick={openNew}>
-          <Plus className="size-4" aria-hidden /> New term
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Administration"
+        title="Terms"
+        actions={
+          <Button onClick={openNew}>
+            <Plus className="size-4" aria-hidden /> New term
+          </Button>
+        }
+      >
+        Each term has an enrollment window, then an add/drop window.
+      </PageHeader>
 
       {saved && (
         <div className="mb-4">
@@ -67,34 +70,38 @@ export function TermsPage() {
           </EmptyState>
         ) : (
           <TableScroll>
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
+            {/* A table from md up; on phones each term stacks into a block (same markup, no sideways scrolling). */}
+            <table className="w-full text-left text-sm max-md:block md:min-w-[680px]">
+              <thead className="border-b border-line text-xs uppercase tracking-wide text-muted max-md:hidden">
                 <tr>
-                  <th scope="col" className="px-5 py-3 font-medium">Term</th>
-                  <th scope="col" className="px-5 py-3 font-medium">Dates</th>
-                  <th scope="col" className="px-5 py-3 font-medium">Enrollment</th>
-                  <th scope="col" className="px-5 py-3 font-medium">Add/drop</th>
-                  <th scope="col" className="px-5 py-3 font-medium">Status</th>
-                  <th scope="col" className="px-5 py-3"><span className="sr-only">Actions</span></th>
+                  <th scope="col" className="px-4 py-3 font-medium">Term</th>
+                  <th scope="col" className="px-4 py-3 font-medium">Dates</th>
+                  <th scope="col" className="px-4 py-3 font-medium">Enrollment</th>
+                  <th scope="col" className="px-4 py-3 font-medium">Add/drop</th>
+                  <th scope="col" className="px-4 py-3 font-medium">Status</th>
+                  <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-line max-md:block">
                 {terms.data.map((t) => (
-                  <tr key={t.id}>
-                    <th scope="row" className="px-5 py-3.5 font-medium text-ink">{t.name}</th>
-                    <td className="px-5 py-3.5 text-muted whitespace-nowrap">
-                      {formatDateOnly(t.startDate)} – {formatDateOnly(t.endDate)}
+                  <tr key={t.id} className="max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-1.5 max-md:px-4 max-md:py-4">
+                    <th scope="row" className="whitespace-nowrap px-4 py-3.5 font-medium text-ink max-md:p-0 max-md:text-base">{t.name}</th>
+                    <td className="px-4 py-3.5 text-muted max-md:col-span-2 max-md:row-start-3 max-md:p-0">
+                      <MobileLabel>Dates</MobileLabel>
+                      <Range from={formatDateOnly(t.startDate)} to={formatDateOnly(t.endDate)} />
                     </td>
-                    <td className="px-5 py-3.5 text-muted whitespace-nowrap">
-                      {formatDateTime(t.enrollStart)} – {formatDateTime(t.enrollEnd)}
+                    <td className="px-4 py-3.5 text-muted max-md:col-span-2 max-md:p-0">
+                      <MobileLabel>Enrollment</MobileLabel>
+                      <Range from={formatDateTime(t.enrollStart)} to={formatDateTime(t.enrollEnd)} />
                     </td>
-                    <td className="px-5 py-3.5 text-muted whitespace-nowrap">
-                      {formatDateTime(t.addDropStart)} – {formatDateTime(t.addDropEnd)}
+                    <td className="px-4 py-3.5 text-muted max-md:col-span-2 max-md:p-0">
+                      <MobileLabel>Add/drop</MobileLabel>
+                      <Range from={formatDateTime(t.addDropStart)} to={formatDateTime(t.addDropEnd)} />
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3.5 max-md:col-span-2 max-md:row-start-2 max-md:p-0">
                       <TermStatus term={t} />
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-4 py-3.5 text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
                       <Button variant="ghost" className="h-8 px-2.5" onClick={() => setDialog({ open: true, term: t })} aria-label={`Edit ${t.name}`}>
                         <Pencil className="size-4" aria-hidden /> Edit
                       </Button>
@@ -131,6 +138,20 @@ function TermStatus({ term }: { term: Term }) {
       {term.currentWindow === 'AddDrop' && <Badge tone="success">Add/drop open</Badge>}
     </div>
   )
+}
+
+/** "22 Oct, 08:00 – 30 Oct, 20:00": breaks after the dash when the column is narrow, never inside a date. */
+function Range({ from, to }: { from: string; to: string }) {
+  return (
+    <>
+      <span className="whitespace-nowrap">{from} –</span> <span className="whitespace-nowrap">{to}</span>
+    </>
+  )
+}
+
+/** The column name, shown before the value only on phones (where the table header is hidden). */
+function MobileLabel({ children }: { children: string }) {
+  return <span className="mr-1.5 font-medium text-ink md:hidden">{children}</span>
 }
 
 function TableSkeleton() {
