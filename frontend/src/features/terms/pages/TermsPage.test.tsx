@@ -171,34 +171,46 @@ describe('TermsPage', () => {
     expect(within(dialog).queryByRole('dialog', { name: 'Choose Last day' })).not.toBeInTheDocument()
   })
 
-  it('refuses a date that is not a real DD/MM/YYYY date', async () => {
+  it('refuses a date that does not exist, or is not finished, when the field is left', async () => {
     mockTerms([fall])
     const { user } = renderAt('/admin/terms', { as: 'Admin' })
     await user.click(await screen.findByRole('button', { name: /New term/ }))
     const dialog = screen.getByRole('dialog', { name: 'New term' })
 
     await typeDate(user, dialog, 'First day', '31/02/2028')
+    expect(within(dialog).getByText("31/02/2028 doesn't exist.")).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('First day')).toHaveValue('')
 
-    expect(within(dialog).getByText('Use DD/MM/YYYY, e.g. 20/01/2028.')).toBeInTheDocument()
+    await typeDate(user, dialog, 'First day', '20/01/20')
+    expect(within(dialog).getByText('Finish the date as DD/MM/YYYY, e.g. 20/01/2028.')).toBeInTheDocument()
     expect(within(dialog).getByLabelText('First day')).toHaveValue('')
   })
 
-  it('only lets digits be typed into a date, adds the slashes and stops at DD/MM/YYYY', async () => {
+  it('shows the DD/MM/YYYY template filling in as the user types, and never takes a day over 31 or a month over 12', async () => {
     mockTerms([fall])
     const { user } = renderAt('/admin/terms', { as: 'Admin' })
     await user.click(await screen.findByRole('button', { name: /New term/ }))
     const dialog = screen.getByRole('dialog', { name: 'New term' })
     const first = within(dialog).getByLabelText('First day')
+    const template = first.parentElement!.querySelector('[data-testid="date-template"]')!
 
-    await user.type(first, 'ab20x012028999')
-    expect(first).toHaveValue('20/01/2028')
+    expect(template).toHaveTextContent('DD/MM/YYYY')
+    await user.type(first, '2001')
+    expect(first).toHaveValue('20/01')
+    // The typed part is hidden in the template (the input shows it); the rest is still to fill.
+    expect(template.lastElementChild).toHaveTextContent('/YYYY')
+
+    await user.clear(first)
+    await user.type(first, 'ab3')
+    await user.type(first, '9') // 39: refused
+    await user.type(first, '1') // 31
+    await user.type(first, '3') // month 3 → 03
+    await user.type(first, '2028')
+    expect(first).toHaveValue('31/03/2028')
 
     await user.clear(first)
     await user.type(first, '151515151')
-    expect(first).toHaveValue('15/15/1515')
-    await user.tab()
-    expect(within(dialog).getByText('Use DD/MM/YYYY, e.g. 20/01/2028.')).toBeInTheDocument()
-    expect(first).toHaveValue('')
+    expect(first).toHaveValue('15/11/1') // month 15 and year 5… refused digit by digit
   })
 
   it('blocks add/drop from opening before enrollment closes (days and times)', async () => {

@@ -3,7 +3,7 @@ import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/style.css'
 import { CalendarDays } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
-import { dateToIso, dmyToIso, isoToDate, isoToDmy, maskDmy } from '@/shared/lib/dates'
+import { dateToIso, dmyTemplateRest, dmyToIso, isoToDate, isoToDmy, maskDmy } from '@/shared/lib/dates'
 
 export interface DateFieldProps {
   label: string
@@ -92,7 +92,8 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
     }
     const iso = dmyToIso(text)
     if (!iso) {
-      setRefused('Use DD/MM/YYYY, e.g. 20/01/2028.')
+      // Complete but not a real day (31/04, 29/02/2027), or not finished yet.
+      setRefused(text.length === 10 ? `${text} doesn't exist.` : 'Finish the date as DD/MM/YYYY, e.g. 20/01/2028.')
       setText(isoToDmy(value))
       return
     }
@@ -127,11 +128,20 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
         {label}
       </label>
       <div className="relative" ref={field}>
+        {/* The DD/MM/YYYY template stays visible and fills in as the user types ("20/01/YYYY"). It sits behind the
+            transparent input: the typed part is invisible here (the input shows it), the rest is grey. */}
+        <div
+          aria-hidden
+          data-testid="date-template"
+          className="pointer-events-none absolute inset-0 flex items-center whitespace-pre rounded-lg border border-transparent bg-surface pl-3.5 text-[15px]"
+        >
+          <span className="text-transparent">{text}</span>
+          <span className="text-muted/60">{dmyTemplateRest(text)}</span>
+        </div>
         <input
           id={id}
           type="text"
           inputMode="numeric"
-          placeholder="DD/MM/YYYY"
           autoComplete="off"
           value={text}
           onChange={(e) => {
@@ -148,7 +158,7 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
           aria-invalid={isInvalid}
           aria-describedby={describedBy}
           className={cn(
-            'block w-full h-11 rounded-lg border bg-surface pl-3.5 pr-11 text-[15px] text-ink placeholder:text-muted/70',
+            'relative block w-full h-11 rounded-lg border bg-transparent pl-3.5 pr-11 text-[15px] text-ink',
             'transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40',
             isInvalid ? 'border-danger focus:border-danger' : 'border-line focus:border-brand',
           )}
