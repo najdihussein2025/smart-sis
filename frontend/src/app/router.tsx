@@ -7,6 +7,7 @@ import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { AdminDashboard, InstructorDashboard, StudentDashboard } from '@/features/dashboard/pages/Dashboards'
 import { ComingSoon } from '@/features/common/pages/ComingSoon'
+import { TermsPage } from '@/features/terms/pages/TermsPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -75,10 +76,10 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'terms', element: <TermsPage /> },
       ...soon([
         ['users', 'Users', 2],
         ['lookups', 'Lookups', 2],
-        ['terms', 'Terms', 2],
         ['courses', 'Courses', 2],
         ['sections', 'Sections', 2],
         ['grade-components', 'Grade components', 2],
