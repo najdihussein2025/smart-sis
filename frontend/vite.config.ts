@@ -21,5 +21,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     restoreMocks: true,
+    // Fixed time zone so date and time conversions give the same result on every machine.
+    env: { TZ: 'UTC' },
   },
 })
