@@ -183,6 +183,10 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
             <DayPicker
               mode="single"
               weekStartsOn={1}
+              // Month and year dropdowns, so a date years away (a birth date) is two clicks, not hundreds.
+              captionLayout="dropdown"
+              startMonth={min ? isoToDate(min) : new Date(1900, 0)}
+              endMonth={max ? isoToDate(max) : new Date(2099, 11)}
               selected={selected}
               defaultMonth={selected ?? (min ? isoToDate(min) : max ? isoToDate(max) : undefined)}
               disabled={disabled}

@@ -43,7 +43,7 @@ A feature never imports another feature's `components/`. If two features need it
 - Wide tables sit in `TableScroll` (scrolls sideways inside the card, never the page). Loading uses `TableSkeleton`,
   paged lists `Pagination`, dropdowns `SelectField`.
 - "Saved" messages use `useSavedMessage()` (`shared/lib`): they hide themselves after 5 s.
-- Destructive actions (drop, deactivate) go through `ConfirmDialog`.
+- Destructive actions (drop, deactivate) go through `ConfirmDialog` (`shared/ui`).
 - Status colours follow the business rules: attendance green/orange/red, charge Pending/Partial/Paid.
 - Works at 360 px wide; sidebar collapses to a top bar on mobile.
 - Accessible: labels on every input, buttons are `<button>`, focus visible, colour is never the only signal.
@@ -53,7 +53,8 @@ A feature never imports another feature's `components/`. If two features need it
 - `strict` TypeScript; no `any`. Use `unknown` and narrow.
 - Dates from the API are UTC ISO strings; format with `shared/lib/format.ts`.
 - Date inputs use `DateField` / `DateTimeField` from `shared/ui` (DD/MM/YYYY, 24-hour times, `min`/`max` grey out
-  days that aren't allowed). Never a native `type="date"` / `datetime-local`: those follow the computer's locale
+  days that aren't allowed). The field keeps a grey DD/MM/YYYY template that fills in as you type, refuses an
+  impossible digit as it is typed (day 01–31, month 01–12, year 1900–2099) and has month/year dropdowns in the calendar. Never a native `type="date"` / `datetime-local`: those follow the computer's locale
   (MM/DD/YYYY on many machines).
 
 ## Tests (Vitest + React Testing Library + MSW)

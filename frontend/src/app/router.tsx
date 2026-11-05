@@ -10,6 +10,7 @@ import { ComingSoon } from '@/features/common/pages/ComingSoon'
 import { TermsPage } from '@/features/terms/pages/TermsPage'
 import { CoursesPage } from '@/features/courses/pages/CoursesPage'
 import { SectionsPage } from '@/features/sections/pages/SectionsPage'
+import { UsersPage } from '@/features/users/pages/UsersPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -78,11 +79,11 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'users', element: <UsersPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'sections', element: <SectionsPage /> },
       ...soon([
-        ['users', 'Users', 2],
         ['lookups', 'Lookups', 2],
         ['grade-components', 'Grade components', 2],
         ['payments', 'Payments', 6],
