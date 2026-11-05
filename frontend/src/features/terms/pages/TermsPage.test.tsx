@@ -1,7 +1,7 @@
 import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { UserEvent } from '@testing-library/user-event'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
@@ -83,6 +83,10 @@ describe('TermsPage', () => {
 
     const springRow = screen.getByRole('rowheader', { name: 'Spring 2027' }).closest('tr')!
     expect(within(springRow).getByText('Upcoming')).toBeInTheDocument()
+
+    // The table scrolls inside a positioned box: otherwise the sr-only "Actions" header escaped it and the whole
+    // page scrolled sideways at 375 px.
+    expect(screen.getByRole('table').parentElement).toHaveClass('relative', 'overflow-x-auto')
   })
 
   it('shows an empty state with a way to create the first term', async () => {
@@ -268,7 +272,102 @@ describe('TermsPage', () => {
     expect(sent).toHaveLength(0)
   })
 
-  it('hides the "saved" message after 5 seconds', async () => {
+  it('closes only the calendar with Escape, keeping the dialog open', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+
+    await user.click(within(dialog).getByRole('button', { name: 'Open calendar for First day' }))
+    expect(within(dialog).getByRole('dialog', { name: 'Choose First day' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    expect(within(dialog).queryByRole('dialog', { name: 'Choose First day' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'New term' })).toBeInTheDocument()
+  })
+
+  it('keeps the calendar inside the screen when the field is near the bottom of a short screen', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(400)
+    // The field sits at 300–344 px: no room for the calendar (360 px) below or above it.
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+      { top: 300, bottom: 344, left: 16, right: 300, width: 284, height: 44, x: 16, y: 300, toJSON: () => ({}) } as DOMRect,
+    )
+
+    await user.click(within(dialog).getByRole('button', { name: 'Open calendar for Add/drop closes date' }))
+
+    const calendar = within(dialog).getByRole('dialog', { name: 'Choose Add/drop closes date' })
+    // 400 − 360 − 8: the whole calendar fits on screen (it used to open below the field and run off the bottom).
+    expect(calendar.style.top).toBe('32px')
+  })
+
+  it('places the calendar before it appears, so it never pushes the dialog content and closes itself', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+
+    // Unplaced, the calendar sat in the dialog's flow for a moment, scrolled the dialog on small screens, and that
+    // scroll closed it again (seen at 375 px wide). It must enter the page already fixed, not be moved afterwards.
+    const moved: string[] = []
+    const observer = new MutationObserver((records) => {
+      for (const r of records)
+        if (r.target instanceof HTMLElement && r.target.getAttribute('role') === 'dialog' && r.target !== dialog)
+          moved.push(r.oldValue ?? '(no style)')
+    })
+    observer.observe(dialog, { subtree: true, attributes: true, attributeFilter: ['style'], attributeOldValue: true })
+    await user.click(within(dialog).getByRole('button', { name: 'Open calendar for Add/drop closes date' }))
+    observer.disconnect()
+
+    expect(moved).toEqual([])
+    expect(within(dialog).getByRole('dialog', { name: 'Choose Add/drop closes date' })).toHaveStyle({ position: 'fixed' })
+  })
+
+  it('keeps the calendar open and next to its field while the dialog scrolls, and closes it once the field is off screen', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(667)
+    const rect = (top: number) => ({ top, bottom: top + 44, left: 16, right: 300, width: 284, height: 44, x: 16, y: top, toJSON: () => ({}) }) as DOMRect
+    const fieldRect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(rect(100))
+    await user.click(within(dialog).getByRole('button', { name: 'Open calendar for First day' }))
+    const calendar = within(dialog).getByRole('dialog', { name: 'Choose First day' })
+    expect(calendar.style.top).toBe('148px')
+
+    // A scroll that is still running when the calendar opens (a phone's momentum scroll) used to close it at once.
+    fieldRect.mockReturnValue(rect(60))
+    fireEvent.scroll(dialog.querySelector('.overflow-y-auto')!)
+    expect(calendar).toBeInTheDocument()
+    expect(calendar.style.top).toBe('108px')
+
+    fieldRect.mockReturnValue(rect(-100))
+    fireEvent.scroll(dialog.querySelector('.overflow-y-auto')!)
+    expect(within(dialog).queryByRole('dialog', { name: 'Choose First day' })).not.toBeInTheDocument()
+  })
+
+  it('hides the "saved" message after 5 seconds when a term is created', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      mockTerms([fall])
+      const { user } = renderAt('/admin/terms', { as: 'Admin' })
+      await user.click(await screen.findByRole('button', { name: /New term/ }))
+      const dialog = screen.getByRole('dialog', { name: 'New term' })
+      await fillValidTerm(user, dialog, 'Spring 2028')
+      await user.click(within(dialog).getByRole('button', { name: 'Create term' }))
+      expect(await screen.findByText('Spring 2028 saved.')).toBeInTheDocument()
+
+      act(() => vi.advanceTimersByTime(SAVED_MESSAGE_MS + 100))
+      expect(screen.queryByText('Spring 2028 saved.')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('hides the "saved" message after 5 seconds when a term is edited', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
       mockTerms([fall, spring])

@@ -8,6 +8,7 @@ import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { QueryError } from '@/shared/ui/QueryError'
+import { TableScroll } from '@/shared/ui/TableScroll'
 import { TermFormDialog } from '../components/TermFormDialog'
 import { useTerms } from '../hooks'
 import type { Term } from '../types'
@@ -65,7 +66,7 @@ export function TermsPage() {
             </div>
           </EmptyState>
         ) : (
-          <div className="overflow-x-auto">
+          <TableScroll>
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -102,7 +103,7 @@ export function TermsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroll>
         )}
       </Card>
 

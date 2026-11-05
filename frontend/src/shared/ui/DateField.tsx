@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/style.css'
 import { CalendarDays } from 'lucide-react'
@@ -40,32 +40,36 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
   useEffect(() => setText(isoToDmy(value)), [value])
 
   // The calendar floats above everything (fixed position), so a scrolling dialog never cuts it off.
-  // It opens below the field, or above it when there isn't room below.
-  useLayoutEffect(() => {
-    if (!open || !field.current) return
-    const r = field.current.getBoundingClientRect()
-    const height = 360
-    const width = 320
-    const top = window.innerHeight - r.bottom < height && r.top > height ? r.top - height - 4 : r.bottom + 4
-    setPosition({ position: 'fixed', top, left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)) })
-  }, [open])
+  // Its place is worked out before it opens: rendered unplaced for even one frame it would sit in the dialog's flow
+  // and push the content around.
+  const toggle = () => {
+    if (open) return setOpen(false)
+    const place = field.current && calendarPlace(field.current)
+    if (!place) return
+    setPosition(place)
+    setOpen(true)
+  }
 
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
       if (box.current && !box.current.contains(e.target as Node)) setOpen(false)
     }
-    // Close rather than drift away from the field when the page or dialog scrolls.
-    const onScroll = (e: Event) => {
-      if (!(e.target instanceof Node && box.current?.contains(e.target))) setOpen(false)
+    // When the page or dialog scrolls (a phone's momentum scroll can still be running when the calendar opens),
+    // the calendar follows its field, and closes only once the field has left the screen.
+    const follow = (e: Event) => {
+      if (e.target instanceof Node && box.current?.contains(e.target)) return // scrolling inside the calendar itself
+      const place = field.current && calendarPlace(field.current)
+      if (place) setPosition(place)
+      else setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
-    window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('scroll', follow, true)
+    window.addEventListener('resize', follow)
     return () => {
       document.removeEventListener('mousedown', onDown)
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('scroll', follow, true)
+      window.removeEventListener('resize', follow)
     }
   }, [open])
 
@@ -151,7 +155,7 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
         />
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={toggle}
           aria-label={`Open calendar for ${label}`}
           aria-expanded={open}
           className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-lg text-muted hover:text-ink"
@@ -192,4 +196,21 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
       ) : null}
     </div>
   )
+}
+
+const CALENDAR_HEIGHT = 360
+const CALENDAR_WIDTH = 320
+
+/**
+ * Where the calendar goes for a field: below it if it fits, else above it if it fits, else as low as the screen
+ * allows (never off the top edge). Null when the field itself is off screen.
+ */
+function calendarPlace(fieldEl: HTMLElement): CSSProperties | null {
+  const r = fieldEl.getBoundingClientRect()
+  const vh = window.innerHeight
+  if (r.bottom < 0 || r.top > vh) return null
+  const below = r.bottom + 4
+  const above = r.top - CALENDAR_HEIGHT - 4
+  const top = below + CALENDAR_HEIGHT <= vh - 8 ? below : above >= 8 ? above : Math.max(8, vh - CALENDAR_HEIGHT - 8)
+  return { position: 'fixed', top, left: Math.max(8, Math.min(r.left, window.innerWidth - CALENDAR_WIDTH - 8)) }
 }
