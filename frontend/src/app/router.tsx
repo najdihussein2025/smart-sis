@@ -14,7 +14,8 @@ import { HomeRedirect, RequireRole } from './RequireRole'
 const soon = (items: [string, string, number][]): RouteObject[] =>
   items.map(([path, title, phase]) => ({ path, element: <ComingSoon title={title} phase={phase} /> }))
 
-export const router = createBrowserRouter([
+/** Exported so tests can mount the real routes in a memory router. */
+export const routes: RouteObject[] = [
   { path: '/', element: <HomeRedirect /> },
   {
     element: <AuthLayout />,
@@ -89,4 +90,6 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '*', element: <NotFoundPage /> },
-])
+]
+
+export const router = createBrowserRouter(routes)
