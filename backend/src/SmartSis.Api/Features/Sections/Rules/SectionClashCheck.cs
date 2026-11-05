@@ -6,6 +6,10 @@ public sealed record MeetingSlot(int DayOfWeek, TimeOnly StartTime, TimeOnly End
 /// <summary>A meeting of another section in the same term, as already stored.</summary>
 /// <param name="SectionLabel">For messages, e.g. "CSC 101 A".</param>
 /// <param name="InstructorId">That section's instructor, or null when none is assigned.</param>
+/// <param name="DayOfWeek">1 = Monday … 6 = Saturday.</param>
+/// <param name="StartTime">Meeting start.</param>
+/// <param name="EndTime">Meeting end.</param>
+/// <param name="RoomId">Room id.</param>
 /// <param name="RoomName">For messages, e.g. "B-101".</param>
 public sealed record ScheduledMeeting(
     string SectionLabel, int? InstructorId, int DayOfWeek, TimeOnly StartTime, TimeOnly EndTime, int RoomId, string RoomName);
