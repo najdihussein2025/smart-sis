@@ -188,3 +188,80 @@ Content-Type: application/json
 ### Admin: deactivate a user (204; the user can no longer log in)
 POST {{api}}/api/admin/users/{{createStudent.response.body.$.id}}/deactivate
 Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### ───────────── Admin: sections ─────────────
+# Seed ids: term 1 (current), courses 1 CSC 101 · 2 CSC 210 · 3 CSC 310 · 4 MAT 201,
+# rooms 1 B-101 · 2 B-204 · 3 Lab-3, instructor 2 (Demo Instructor). Check with GET /api/admin/lookups if unsure.
+
+### Admin: list sections of a term (filter by termId and / or courseId; search matches course code or name)
+GET {{api}}/api/admin/sections?termId=1&page=1&pageSize=20
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: create a section on Saturday (free in the seed) → 201
+# @name createSection
+POST {{api}}/api/admin/sections
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "courseId": 3,
+  "termId": 1,
+  "sectionCode": "b",
+  "instructorId": 2,
+  "capacity": 25,
+  "meetings": [
+    { "id": null, "dayOfWeek": 6, "startTime": "09:00:00", "endTime": "10:15:00", "roomId": 1, "type": "Lecture" },
+    { "id": null, "dayOfWeek": 6, "startTime": "10:30:00", "endTime": "12:30:00", "roomId": 3, "type": "Lab" }
+  ]
+}
+
+### Admin: get one section with meetings and seats taken
+GET {{api}}/api/admin/sections/{{createSection.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Admin: update — keep the first meeting (send its id), drop the lab, add a Thursday-evening meeting
+PUT {{api}}/api/admin/sections/{{createSection.response.body.$.id}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "courseId": 3,
+  "termId": 1,
+  "sectionCode": "B",
+  "instructorId": 2,
+  "capacity": 30,
+  "meetings": [
+    { "id": {{createSection.response.body.$.meetings[0].id}}, "dayOfWeek": 6, "startTime": "09:00:00", "endTime": "10:15:00", "roomId": 2, "type": "Lecture" },
+    { "id": null, "dayOfWeek": 4, "startTime": "17:00:00", "endTime": "18:15:00", "roomId": 1, "type": "Lecture" }
+  ]
+}
+
+### Room clash → 409 room_clash (seeded CSC 101 A uses B-101 on Monday 08:00–09:15)
+POST {{api}}/api/admin/sections
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "courseId": 4, "termId": 1, "sectionCode": "B", "instructorId": null, "capacity": 30,
+  "meetings": [ { "id": null, "dayOfWeek": 1, "startTime": "08:30:00", "endTime": "09:30:00", "roomId": 1, "type": "Lecture" } ]
+}
+
+### Instructor clash → 409 instructor_clash (Lab-3 is free Monday morning, the instructor isn't)
+POST {{api}}/api/admin/sections
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "courseId": 4, "termId": 1, "sectionCode": "C", "instructorId": 2, "capacity": 30,
+  "meetings": [ { "id": null, "dayOfWeek": 1, "startTime": "08:30:00", "endTime": "09:30:00", "roomId": 3, "type": "Lecture" } ]
+}
+
+### Duplicate code → 409 duplicate_section_code (CSC 101 already has section A this term)
+POST {{api}}/api/admin/sections
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "courseId": 1, "termId": 1, "sectionCode": "a", "instructorId": null, "capacity": 30,
+  "meetings": [ { "id": null, "dayOfWeek": 6, "startTime": "14:00:00", "endTime": "15:00:00", "roomId": 2, "type": "Lecture" } ]
+}
