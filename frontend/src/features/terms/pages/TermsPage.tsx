@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CalendarRange, Pencil, Plus } from 'lucide-react'
 import { formatDateOnly, formatDateTime, todayIso } from '@/shared/lib/format'
 import { Alert } from '@/shared/ui/Alert'
@@ -14,11 +14,21 @@ import type { Term } from '../types'
 
 type DialogState = { open: false } | { open: true; term?: Term }
 
+/** How long the "saved" message stays on screen. */
+export const SAVED_MESSAGE_MS = 5000
+
 /** UC-16 / PB-02: admin creates and edits terms and their two registration windows. */
 export function TermsPage() {
   const terms = useTerms()
   const [dialog, setDialog] = useState<DialogState>({ open: false })
-  const [saved, setSaved] = useState<string | null>(null)
+  const [saved, setSaved] = useState<{ name: string } | null>(null)
+
+  // The "saved" message hides itself after a few seconds (a new save restarts the countdown).
+  useEffect(() => {
+    if (!saved) return
+    const timer = setTimeout(() => setSaved(null), SAVED_MESSAGE_MS)
+    return () => clearTimeout(timer)
+  }, [saved])
 
   const openNew = () => setDialog({ open: true })
   const close = () => setDialog({ open: false })
@@ -36,7 +46,7 @@ export function TermsPage() {
 
       {saved && (
         <div className="mb-4">
-          <Alert tone="success">{saved} saved.</Alert>
+          <Alert tone="success">{saved.name} saved.</Alert>
         </div>
       )}
 
@@ -101,7 +111,7 @@ export function TermsPage() {
         term={dialog.open ? dialog.term : undefined}
         onClose={close}
         onSaved={(t) => {
-          setSaved(t.name)
+          setSaved({ name: t.name })
           close()
         }}
       />

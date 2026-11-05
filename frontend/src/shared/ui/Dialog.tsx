@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { cn } from '@/shared/lib/cn'
 
 interface DialogProps {
   open: boolean
@@ -9,10 +10,12 @@ interface DialogProps {
   children: ReactNode
   /** Footer buttons, right-aligned. */
   actions?: ReactNode
+  /** "md" (default) for short forms, "lg" for forms with fields side by side. */
+  size?: 'md' | 'lg'
 }
 
 /** Modal dialog: Escape and the backdrop close it, focus moves inside on open and returns on close. */
-export function Dialog({ open, title, description, onClose, children, actions }: DialogProps) {
+export function Dialog({ open, title, description, onClose, children, actions, size = 'md' }: DialogProps) {
   const titleId = useId()
   const panel = useRef<HTMLDivElement>(null)
 
@@ -41,7 +44,10 @@ export function Dialog({ open, title, description, onClose, children, actions }:
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col rounded-[var(--radius-card)] bg-surface shadow-xl"
+        className={cn(
+          'relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-[var(--radius-card)] bg-surface shadow-xl',
+          size === 'lg' ? 'max-w-3xl' : 'max-w-xl',
+        )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
           <div>

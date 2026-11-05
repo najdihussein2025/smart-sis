@@ -1,10 +1,13 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { applyFieldErrors, errorMessage, getProblem } from '@/shared/api/problem'
+import { addDays } from '@/shared/lib/dates'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { Checkbox } from '@/shared/ui/Checkbox'
+import { DateField } from '@/shared/ui/DateField'
+import { DateTimeField } from '@/shared/ui/DateTimeField'
 import { Dialog } from '@/shared/ui/Dialog'
 import { TextField } from '@/shared/ui/TextField'
 import { useSaveTerm } from '../hooks'
@@ -19,9 +22,11 @@ interface Props {
   onSaved: (term: Term) => void
 }
 
+const dateFields = ['startDate', 'endDate', 'enrollStart', 'enrollEnd', 'addDropStart', 'addDropEnd'] as const
+
 export function TermFormDialog({ open, term, onClose, onSaved }: Props) {
   const save = useSaveTerm()
-  const { register, handleSubmit, formState, reset, setError } = useForm<TermFormValues>({
+  const { register, control, handleSubmit, formState, reset, setError, watch, getValues, trigger } = useForm<TermFormValues>({
     resolver: zodResolver(termSchema),
     defaultValues: emptyTerm,
   })
@@ -33,6 +38,14 @@ export function TermFormDialog({ open, term, onClose, onSaved }: Props) {
     save.reset()
     // Only when the dialog opens or the term changes; `reset` and `save` are stable enough not to re-run this.
   }, [open, term])
+
+  // Each date limits the next one, so earlier dates can't be chosen. If an earlier field moves past a later one
+  // that is already filled, the later one shows its error straight away.
+  const v = watch()
+  const recheckDates = () => {
+    const filled = dateFields.filter((f) => getValues(f))
+    if (filled.length) void trigger(filled)
+  }
 
   const onSubmit = handleSubmit((values) =>
     save.mutate(
@@ -59,6 +72,7 @@ export function TermFormDialog({ open, term, onClose, onSaved }: Props) {
     <Dialog
       open={open}
       onClose={onClose}
+      size="lg"
       title={term ? `Edit ${term.name}` : 'New term'}
       description="Students enroll and swap during enrollment; add/drop opens after it closes. Times are in your time zone."
       actions={
@@ -79,21 +93,122 @@ export function TermFormDialog({ open, term, onClose, onSaved }: Props) {
 
         <fieldset className="grid gap-4 sm:grid-cols-2">
           <legend className="sr-only">Term dates</legend>
-          <TextField label="First day" type="date" error={e.startDate?.message} {...register('startDate')} />
-          <TextField label="Last day" type="date" error={e.endDate?.message} {...register('endDate')} />
+          <Controller
+            control={control}
+            name="startDate"
+            render={({ field }) => (
+              <DateField
+                label="First day"
+                value={field.value}
+                onChange={(d) => {
+                  field.onChange(d)
+                  recheckDates()
+                }}
+                onBlur={field.onBlur}
+                error={e.startDate?.message}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="endDate"
+            render={({ field }) => (
+              <DateField
+                label="Last day"
+                value={field.value}
+                onChange={(d) => {
+                  field.onChange(d)
+                  recheckDates()
+                }}
+                onBlur={field.onBlur}
+                min={v.startDate ? addDays(v.startDate, 1) : undefined}
+                error={e.endDate?.message}
+              />
+            )}
+          />
         </fieldset>
 
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-sm font-semibold text-ink">Enrollment window</legend>
-          <TextField label="Enrollment opens" type="datetime-local" error={e.enrollStart?.message} {...register('enrollStart')} />
-          <TextField label="Enrollment closes" type="datetime-local" error={e.enrollEnd?.message} {...register('enrollEnd')} />
-        </fieldset>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-ink">Enrollment window</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
+              control={control}
+              name="enrollStart"
+              render={({ field }) => (
+                <DateTimeField
+                  label="Enrollment opens"
+                  value={field.value}
+                  onChange={(d) => {
+                    field.onChange(d)
+                    recheckDates()
+                  }}
+                  onBlur={field.onBlur}
+                  error={e.enrollStart?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="enrollEnd"
+              render={({ field }) => (
+                <DateTimeField
+                  label="Enrollment closes"
+                  value={field.value}
+                  onChange={(d) => {
+                    field.onChange(d)
+                    recheckDates()
+                  }}
+                  onBlur={field.onBlur}
+                  min={v.enrollStart || undefined}
+                  minExclusive
+                  error={e.enrollEnd?.message}
+                />
+              )}
+            />
+          </div>
+        </div>
 
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-sm font-semibold text-ink">Add/drop window</legend>
-          <TextField label="Add/drop opens" type="datetime-local" error={e.addDropStart?.message} {...register('addDropStart')} />
-          <TextField label="Add/drop closes" type="datetime-local" error={e.addDropEnd?.message} {...register('addDropEnd')} />
-        </fieldset>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-ink">Add/drop window</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
+              control={control}
+              name="addDropStart"
+              render={({ field }) => (
+                <DateTimeField
+                  label="Add/drop opens"
+                  value={field.value}
+                  onChange={(d) => {
+                    field.onChange(d)
+                    recheckDates()
+                  }}
+                  onBlur={field.onBlur}
+                  min={v.enrollEnd || undefined}
+                  error={e.addDropStart?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="addDropEnd"
+              render={({ field }) => (
+                <DateTimeField
+                  label="Add/drop closes"
+                  value={field.value}
+                  onChange={(d) => {
+                    field.onChange(d)
+                    recheckDates()
+                  }}
+                  onBlur={field.onBlur}
+                  min={v.addDropStart || undefined}
+                  minExclusive
+                  maxDate={v.endDate || undefined}
+                  error={e.addDropEnd?.message}
+                />
+              )}
+            />
+          </div>
+        </div>
 
         <Checkbox
           label="Current term"

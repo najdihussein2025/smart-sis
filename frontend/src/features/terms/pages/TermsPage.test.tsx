@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { act } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { screen, waitFor, within } from '@testing-library/react'
+import type { UserEvent } from '@testing-library/user-event'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
 import type { SaveTermRequest, Term } from '../types'
+import { SAVED_MESSAGE_MS } from './TermsPage'
 
 // PB-02 / UC-16 / SD-16 step 1: admin creates and edits terms. Tests run with TZ=UTC (vite.config.ts).
 
@@ -43,6 +46,29 @@ function mockTerms(initial: Term[]) {
     }),
   )
   return sent
+}
+
+/** Dates are typed DD/MM/YYYY and checked when the field loses focus. */
+async function typeDate(user: UserEvent, scope: HTMLElement, label: string, dmy: string) {
+  const input = within(scope).getByLabelText(label)
+  await user.clear(input)
+  await user.type(input, dmy)
+  await user.tab()
+}
+
+async function setDateTime(user: UserEvent, scope: HTMLElement, label: string, dmy: string, time: string) {
+  await typeDate(user, scope, `${label} date`, dmy)
+  await user.selectOptions(within(scope).getByLabelText(`${label} time`), time)
+}
+
+async function fillValidTerm(user: UserEvent, dialog: HTMLElement, name: string) {
+  await user.type(within(dialog).getByLabelText('Name'), name)
+  await typeDate(user, dialog, 'First day', '20/01/2028')
+  await typeDate(user, dialog, 'Last day', '30/05/2028')
+  await setDateTime(user, dialog, 'Enrollment opens', '05/01/2028', '08:00')
+  await setDateTime(user, dialog, 'Enrollment closes', '15/01/2028', '20:00')
+  await setDateTime(user, dialog, 'Add/drop opens', '20/01/2028', '08:00')
+  await setDateTime(user, dialog, 'Add/drop closes', '30/01/2028', '20:00')
 }
 
 describe('TermsPage', () => {
@@ -89,13 +115,7 @@ describe('TermsPage', () => {
     await user.click(await screen.findByRole('button', { name: /New term/ }))
     const dialog = screen.getByRole('dialog', { name: 'New term' })
 
-    await user.type(within(dialog).getByLabelText('Name'), '  Spring 2028 ')
-    await user.type(within(dialog).getByLabelText('First day'), '2028-01-20')
-    await user.type(within(dialog).getByLabelText('Last day'), '2028-05-30')
-    await user.type(within(dialog).getByLabelText('Enrollment opens'), '2028-01-05T08:00')
-    await user.type(within(dialog).getByLabelText('Enrollment closes'), '2028-01-15T20:00')
-    await user.type(within(dialog).getByLabelText('Add/drop opens'), '2028-01-20T08:00')
-    await user.type(within(dialog).getByLabelText('Add/drop closes'), '2028-01-30T20:00')
+    await fillValidTerm(user, dialog, '  Spring 2028 ')
     await user.click(within(dialog).getByRole('button', { name: 'Create term' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -118,24 +138,86 @@ describe('TermsPage', () => {
     expect(screen.getByText('Spring 2028 saved.')).toBeInTheDocument()
   })
 
-  it('checks the window order before sending (same rules as the API)', async () => {
-    const sent = mockTerms([fall])
+  it('refuses a last day that is not after the first day, and keeps the field empty', async () => {
+    mockTerms([fall])
     const { user } = renderAt('/admin/terms', { as: 'Admin' })
     await user.click(await screen.findByRole('button', { name: /New term/ }))
     const dialog = screen.getByRole('dialog', { name: 'New term' })
 
-    await user.type(within(dialog).getByLabelText('Name'), 'Bad windows')
-    await user.type(within(dialog).getByLabelText('First day'), '2028-01-20')
-    await user.type(within(dialog).getByLabelText('Last day'), '2028-01-10')
-    await user.type(within(dialog).getByLabelText('Enrollment opens'), '2028-01-05T08:00')
-    await user.type(within(dialog).getByLabelText('Enrollment closes'), '2028-01-15T20:00')
-    await user.type(within(dialog).getByLabelText('Add/drop opens'), '2028-01-14T08:00')
-    await user.type(within(dialog).getByLabelText('Add/drop closes'), '2028-02-28T20:00')
-    await user.click(within(dialog).getByRole('button', { name: 'Create term' }))
+    await typeDate(user, dialog, 'First day', '20/01/2028')
+    await typeDate(user, dialog, 'Last day', '20/01/2028')
+
+    expect(within(dialog).getByText('Choose 21/01/2028 or later.')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Last day')).toHaveValue('')
+  })
+
+  it('greys out earlier days in the calendar and fills the field in DD/MM/YYYY', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    await typeDate(user, dialog, 'First day', '20/01/2028')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Open calendar for Last day' }))
+    const calendar = within(dialog).getByRole('dialog', { name: 'Choose Last day' })
+    expect(within(calendar).getByRole('button', { name: /January 20th, 2028/ })).toBeDisabled()
+    await user.click(within(calendar).getByRole('button', { name: /January 21st, 2028/ }))
+
+    expect(within(dialog).getByLabelText('Last day')).toHaveValue('21/01/2028')
+    expect(within(dialog).queryByRole('dialog', { name: 'Choose Last day' })).not.toBeInTheDocument()
+  })
+
+  it('refuses a date that is not a real DD/MM/YYYY date', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+
+    await typeDate(user, dialog, 'First day', '31/02/2028')
+
+    expect(within(dialog).getByText('Use DD/MM/YYYY, e.g. 20/01/2028.')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('First day')).toHaveValue('')
+  })
+
+  it('blocks add/drop from opening before enrollment closes (days and times)', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    await setDateTime(user, dialog, 'Enrollment opens', '05/01/2028', '08:00')
+    await setDateTime(user, dialog, 'Enrollment closes', '15/01/2028', '20:00')
+
+    // An earlier day is refused…
+    await typeDate(user, dialog, 'Add/drop opens date', '14/01/2028')
+    expect(within(dialog).getByText('Choose 15/01/2028 or later.')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Add/drop opens date')).toHaveValue('')
+
+    // …and on the same day, earlier times can't be picked. Add/drop may open exactly when enrollment closes.
+    await typeDate(user, dialog, 'Add/drop opens date', '15/01/2028')
+    const time = within(dialog).getByLabelText('Add/drop opens time')
+    expect(time).toHaveValue('20:00')
+    expect(within(time).getByRole('option', { name: '19:45' })).toBeDisabled()
+    expect(within(time).getByRole('option', { name: '20:00' })).toBeEnabled()
+
+    // A window must end after it starts, so the same time isn't allowed for "closes".
+    const closes = within(dialog).getByLabelText('Enrollment closes time')
+    expect(within(closes).getByRole('option', { name: '08:00' })).toBeEnabled() // different day
+    await typeDate(user, dialog, 'Enrollment closes date', '05/01/2028')
+    expect(within(closes).getByRole('option', { name: '08:00' })).toBeDisabled()
+    expect(within(closes).getByRole('option', { name: '08:15' })).toBeEnabled()
+  })
+
+  it('flags a later date straight away when an earlier one moves past it', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    await typeDate(user, dialog, 'First day', '20/01/2028')
+    await typeDate(user, dialog, 'Last day', '30/05/2028')
+
+    await typeDate(user, dialog, 'First day', '01/06/2028')
 
     expect(await within(dialog).findByText('The term must end after it starts.')).toBeInTheDocument()
-    expect(within(dialog).getByText("Add/drop can't open before the enrollment window closes.")).toBeInTheDocument()
-    expect(sent).toHaveLength(0)
   })
 
   it('shows a duplicate name from the API under the name field', async () => {
@@ -149,13 +231,7 @@ describe('TermsPage', () => {
     await user.click(await screen.findByRole('button', { name: /New term/ }))
     const dialog = screen.getByRole('dialog', { name: 'New term' })
 
-    await user.type(within(dialog).getByLabelText('Name'), 'Fall 2026')
-    await user.type(within(dialog).getByLabelText('First day'), '2026-09-01')
-    await user.type(within(dialog).getByLabelText('Last day'), '2026-12-20')
-    await user.type(within(dialog).getByLabelText('Enrollment opens'), '2026-08-15T08:00')
-    await user.type(within(dialog).getByLabelText('Enrollment closes'), '2026-08-30T20:00')
-    await user.type(within(dialog).getByLabelText('Add/drop opens'), '2026-09-01T08:00')
-    await user.type(within(dialog).getByLabelText('Add/drop closes'), '2026-09-10T20:00')
+    await fillValidTerm(user, dialog, 'Fall 2026')
     await user.click(within(dialog).getByRole('button', { name: 'Create term' }))
 
     const name = within(dialog).getByLabelText('Name')
@@ -170,8 +246,9 @@ describe('TermsPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Edit Spring 2027' }))
     const dialog = screen.getByRole('dialog', { name: 'Edit Spring 2027' })
-    expect(within(dialog).getByLabelText('First day')).toHaveValue('2099-01-20')
-    expect(within(dialog).getByLabelText('Enrollment opens')).toHaveValue('2026-08-15T08:00')
+    expect(within(dialog).getByLabelText('First day')).toHaveValue('20/01/2099')
+    expect(within(dialog).getByLabelText('Enrollment opens date')).toHaveValue('15/08/2026')
+    expect(within(dialog).getByLabelText('Enrollment opens time')).toHaveValue('08:00')
 
     await user.click(within(dialog).getByLabelText('Current term'))
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
@@ -189,5 +266,23 @@ describe('TermsPage', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(sent).toHaveLength(0)
+  })
+
+  it('hides the "saved" message after 5 seconds', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      mockTerms([fall, spring])
+      const { user } = renderAt('/admin/terms', { as: 'Admin' })
+      await user.click(await screen.findByRole('button', { name: 'Edit Spring 2027' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save changes' }))
+      expect(await screen.findByText('Spring 2027 saved.')).toBeInTheDocument()
+
+      act(() => vi.advanceTimersByTime(SAVED_MESSAGE_MS - 500))
+      expect(screen.getByText('Spring 2027 saved.')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(600))
+      expect(screen.queryByText('Spring 2027 saved.')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

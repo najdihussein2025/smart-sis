@@ -49,6 +49,9 @@ A feature never imports another feature's `components/`. If two features need it
 - Function components, named exports, no default exports except route lazies.
 - `strict` TypeScript; no `any`. Use `unknown` and narrow.
 - Dates from the API are UTC ISO strings; format with `shared/lib/format.ts`.
+- Date inputs use `DateField` / `DateTimeField` from `shared/ui` (DD/MM/YYYY, 24-hour times, `min`/`max` grey out
+  days that aren't allowed). Never a native `type="date"` / `datetime-local`: those follow the computer's locale
+  (MM/DD/YYYY on many machines).
 
 ## Tests (Vitest + React Testing Library + MSW)
 - `npm test` runs once (CI), `npm run test:watch` while working. Test files sit next to the code: `LoginPage.test.tsx`.

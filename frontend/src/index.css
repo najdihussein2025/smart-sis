@@ -39,3 +39,15 @@
     @apply outline-2 outline-offset-2 outline-accent;
   }
 }
+
+/* Calendar popover (react-day-picker) in the app's colours. */
+.date-popover .rdp-root {
+  --rdp-accent-color: var(--color-brand);
+  --rdp-accent-background-color: var(--color-brand-50);
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
+  --rdp-day_button-height: 36px;
+  --rdp-day_button-width: 36px;
+  --rdp-today-color: var(--color-accent);
+  font-size: 14px;
+}
