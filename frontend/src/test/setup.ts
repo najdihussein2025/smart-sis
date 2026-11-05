@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { server } from './server'
 
 /**
@@ -36,5 +36,7 @@ afterEach(() => {
   cleanup()
   server.resetHandlers()
   localStorage.clear()
+  // A test that failed while using fake timers mustn't leave them on for the next one.
+  vi.useRealTimers()
 })
 afterAll(() => server.close())

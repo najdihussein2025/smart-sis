@@ -24,6 +24,8 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong. P
 
 /**
  * Puts the API's 400 field errors (`errors: { "name": [...] }`) under the matching form fields.
+ * List keys use the form's dotted paths: "meetings[1].endTime" matches the field "meetings.1.endTime"; when no
+ * field matches exactly, the closest parent does ("prerequisiteIds[0]" → "prerequisiteIds").
  * Returns true when at least one field matched, so the caller can skip the top-of-form alert.
  */
 export function applyFieldErrors<Field extends string>(
@@ -34,8 +36,11 @@ export function applyFieldErrors<Field extends string>(
   const errors = getProblem(error)?.errors
   if (!errors) return false
   let matched = false
-  for (const [key, messages] of Object.entries(errors)) {
-    const field = fields.find((f) => f === key)
+  for (const [rawKey, messages] of Object.entries(errors)) {
+    const key = rawKey.replace(/\[(\d+)\]/g, '.$1')
+    const field =
+      fields.find((f) => f === key) ??
+      [...fields].sort((a, b) => b.length - a.length).find((f) => key.startsWith(`${f}.`))
     if (field && messages[0]) {
       setError(field, { type: 'server', message: messages[0] })
       matched = true

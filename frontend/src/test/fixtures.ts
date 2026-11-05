@@ -33,3 +33,27 @@ export function profileFor(role: Role) {
     instructor: role === 'Instructor' ? { departmentId: 1, departmentName: 'Computer Science' } : null,
   }
 }
+
+/** Admin dropdown lists (GET /api/admin/lookups), matching the DevSeeder ids. Simulated (SR-23). */
+export const lookups = {
+  campuses: [{ id: 1, name: 'Main Campus' }],
+  departments: [
+    { id: 1, code: 'CSC', name: 'Computer Science' },
+    { id: 2, code: 'MAT', name: 'Mathematics' },
+  ],
+  majors: [
+    { id: 1, name: 'Computer Science', departmentId: 1, defaultMaxCredits: 18 },
+    { id: 2, name: 'Mathematics', departmentId: 2, defaultMaxCredits: 18 },
+  ],
+  rooms: [
+    { id: 1, name: 'B-101', campusId: 1, campusName: 'Main Campus', capacity: 40 },
+    { id: 2, name: 'B-204', campusId: 1, campusName: 'Main Campus', capacity: 30 },
+    { id: 3, name: 'Lab-3', campusId: 1, campusName: 'Main Campus', capacity: 25 },
+  ],
+  instructors: [{ id: 2, fullName: 'Demo Instructor', universityId: 2001, departmentId: 1 }],
+}
+
+/** A page of results in the API's PagedResult shape. */
+export function paged<T>(items: T[], page = 1, pageSize = 20, totalCount = items.length) {
+  return { items, page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) }
+}

@@ -8,6 +8,7 @@ import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { AdminDashboard, InstructorDashboard, StudentDashboard } from '@/features/dashboard/pages/Dashboards'
 import { ComingSoon } from '@/features/common/pages/ComingSoon'
 import { TermsPage } from '@/features/terms/pages/TermsPage'
+import { CoursesPage } from '@/features/courses/pages/CoursesPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -77,10 +78,10 @@ export const routes: RouteObject[] = [
       { index: true, element: <AdminDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'terms', element: <TermsPage /> },
+      { path: 'courses', element: <CoursesPage /> },
       ...soon([
         ['users', 'Users', 2],
         ['lookups', 'Lookups', 2],
-        ['courses', 'Courses', 2],
         ['sections', 'Sections', 2],
         ['grade-components', 'Grade components', 2],
         ['payments', 'Payments', 6],

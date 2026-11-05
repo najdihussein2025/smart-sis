@@ -40,6 +40,9 @@ A feature never imports another feature's `components/`. If two features need it
   hex colours in components.
 - Every list screen handles three states: loading (skeleton), empty (`EmptyState` with a sentence that says
   what to do), error (message + retry).
+- Wide tables sit in `TableScroll` (scrolls sideways inside the card, never the page). Loading uses `TableSkeleton`,
+  paged lists `Pagination`, dropdowns `SelectField`.
+- "Saved" messages use `useSavedMessage()` (`shared/lib`): they hide themselves after 5 s.
 - Destructive actions (drop, deactivate) go through `ConfirmDialog`.
 - Status colours follow the business rules: attendance green/orange/red, charge Pending/Partial/Paid.
 - Works at 360 px wide; sidebar collapses to a top bar on mobile.
