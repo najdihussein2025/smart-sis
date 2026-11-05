@@ -103,6 +103,14 @@ Each term has two windows:
 - **No prerequisite cycles.** A course can't be its own prerequisite, and saving a course's prerequisites is rejected (409) if it would make a course depend on itself through a chain (e.g. CSC 101 → CSC 310 when CSC 310 → CSC 210 → CSC 101). Shared prerequisites (a diamond) are fine.
 - Saving a course **replaces** its prerequisite list and its major/elective list with what was sent.
 
+### Sections (admin)
+- **Section codes** are 1–8 letters or digits, stored upper case (`a` → `A`), unique per course and term.
+- A section has **at least one weekly meeting** (day Mon–Sat, start < end, room, Lecture or Lab). The instructor is optional until assigned.
+- **No clashes inside a term:** a section's own meetings can't overlap each other, and no meeting can overlap another section's meeting in the **same room** or with the **same instructor**. Back-to-back (09:15 end, 09:15 start) is fine. Room clashes are reported before instructor clashes.
+- **Seats** are counted from enrollments with status Enrolled or Completed (dropped ones free the seat). Capacity can't be set below the seats taken.
+- Once students hold a seat, the section's **course and term can't change**.
+- Saving replaces the meeting list. A meeting sent with its `id` is kept (attendance history stays linked); a meeting that already has attendance can't be removed.
+
 ### Enrollment checks (enroll and swap)
 1. The relevant window is open.
 2. **Credit cap:** default **18 credits per term**, set on the major when the admin creates it. The admin can override it per student.
