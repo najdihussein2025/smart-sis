@@ -29,6 +29,10 @@ Content-Type: application/json
 
 { "universityId": 1001, "password": "Pass@1234" }
 
+### Admin: dropdown lists (campuses, departments, majors, rooms, active instructors)
+GET {{api}}/api/admin/lookups
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
 ### Admin: list terms (newest start date first)
 GET {{api}}/api/admin/terms
 Authorization: Bearer {{adminLogin.response.body.$.accessToken}}

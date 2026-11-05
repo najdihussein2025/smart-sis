@@ -54,6 +54,7 @@ public sealed class RoleAccessTests(SisApiFactory factory) : IClassFixture<SisAp
         { "POST", "/api/admin/users" },
         { "PUT", "/api/admin/users/1" },
         { "POST", "/api/admin/users/1/deactivate" },
+        { "GET", "/api/admin/lookups" },
     };
 
     [Theory]
