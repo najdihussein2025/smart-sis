@@ -49,3 +49,13 @@ A feature never imports another feature's `components/`. If two features need it
 - Function components, named exports, no default exports except route lazies.
 - `strict` TypeScript; no `any`. Use `unknown` and narrow.
 - Dates from the API are UTC ISO strings; format with `shared/lib/format.ts`.
+
+## Tests (Vitest + React Testing Library + MSW)
+- `npm test` runs once (CI), `npm run test:watch` while working. Test files sit next to the code: `LoginPage.test.tsx`.
+- Render through `renderAt(path, { as: 'Admin' })` from `src/test/render.tsx`: it mounts the **real routes** with a fresh
+  query cache, the real `AuthProvider` and a memory router, optionally signed in. Assert on what the user sees
+  (`getByRole`, `getByLabelText`, `findByText`) and on `router.state.location.pathname` for redirects.
+- Mock the API with MSW handlers per test: `server.use(http.get('/api/...', () => HttpResponse.json(...)))`.
+  A request with no handler **fails the test**, so a wrong URL can't pass silently. Never mock axios or hooks directly.
+- Test data comes from `src/test/fixtures.ts` (the same simulated users as DevSeeder). No real data (SR-23).
+- Each page test covers: the happy path, a field error, a 409/400 from the API shown to the user, and the empty/error state.

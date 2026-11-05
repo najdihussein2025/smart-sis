@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '@/shared/auth/AuthProvider'
-import { homeFor } from '@/shared/auth/session'
+import { homeFor, type Role } from '@/shared/auth/session'
 import { errorMessage } from '@/shared/api/problem'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
@@ -31,7 +31,13 @@ export function LoginPage() {
     defaultValues: { universityId: '', password: '' },
   })
 
-  if (user) return <Navigate to={homeFor[user.role]} replace />
+  // Back to the page the user first asked for, but only inside their own area; otherwise their dashboard.
+  const from = (location.state as { from?: string } | null)?.from
+  const destination = (role: Role) => (from?.startsWith(homeFor[role]) ? from : homeFor[role])
+
+  // Also reached right after signIn() below (the provider re-renders this page before the navigation lands),
+  // so it must pick the same destination as onSuccess.
+  if (user) return <Navigate to={destination(user.role)} replace />
 
   const onSubmit = handleSubmit((values) =>
     login.mutate(
@@ -39,8 +45,7 @@ export function LoginPage() {
       {
         onSuccess: (session) => {
           signIn(session)
-          const from = (location.state as { from?: string } | null)?.from
-          navigate(from?.startsWith(homeFor[session.user.role]) ? from : homeFor[session.user.role], { replace: true })
+          navigate(destination(session.user.role), { replace: true })
         },
       },
     ),

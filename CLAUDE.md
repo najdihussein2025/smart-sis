@@ -53,6 +53,7 @@ dotnet run --project src/SmartSis.Api            # http://localhost:5080, docs a
 
 # frontend (from frontend/)
 npm install && npm run dev                        # http://localhost:5173
+npm test                                          # Vitest, once (npm run test:watch while working)
 npm run build                                     # type-check + build
 npm run gen:api                                   # regenerate API types (API must be running)
 
