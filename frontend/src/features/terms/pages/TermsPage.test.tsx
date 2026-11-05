@@ -183,6 +183,24 @@ describe('TermsPage', () => {
     expect(within(dialog).getByLabelText('First day')).toHaveValue('')
   })
 
+  it('only lets digits be typed into a date, adds the slashes and stops at DD/MM/YYYY', async () => {
+    mockTerms([fall])
+    const { user } = renderAt('/admin/terms', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: /New term/ }))
+    const dialog = screen.getByRole('dialog', { name: 'New term' })
+    const first = within(dialog).getByLabelText('First day')
+
+    await user.type(first, 'ab20x012028999')
+    expect(first).toHaveValue('20/01/2028')
+
+    await user.clear(first)
+    await user.type(first, '151515151')
+    expect(first).toHaveValue('15/15/1515')
+    await user.tab()
+    expect(within(dialog).getByText('Use DD/MM/YYYY, e.g. 20/01/2028.')).toBeInTheDocument()
+    expect(first).toHaveValue('')
+  })
+
   it('blocks add/drop from opening before enrollment closes (days and times)', async () => {
     mockTerms([fall])
     const { user } = renderAt('/admin/terms', { as: 'Admin' })

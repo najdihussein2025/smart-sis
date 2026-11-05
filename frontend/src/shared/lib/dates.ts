@@ -41,3 +41,27 @@ export function addDays(iso: string, days: number): string {
 
 /** "00:00", "00:15", … "23:45". */
 export const quarterHours: string[] = Array.from({ length: 96 }, (_, i) => `${pad(Math.floor(i / 4))}:${pad((i % 4) * 15)}`)
+
+/**
+ * Shapes what is typed into a date field as DD/MM/YYYY: digits only, the slashes are added, at most 8 digits.
+ * "20012028" → "20/01/2028". A typed separator after a single digit pads it ("1/" → "01/"). Letters are dropped.
+ * The slash only appears once the next digit is typed, so Backspace never gets stuck on it.
+ */
+export function maskDmy(raw: string): string {
+  const sizes = [2, 2, 4]
+  const parts = ['']
+  for (const ch of raw) {
+    const i = parts.length - 1
+    if (/\d/.test(ch)) {
+      if (parts[i]!.length === sizes[i]) {
+        if (i === 2) break // the year is full
+        parts.push('')
+      }
+      parts[parts.length - 1] += ch
+    } else if (/[/.\- ]/.test(ch) && i < 2 && parts[i]!.length > 0) {
+      parts[i] = parts[i]!.padStart(2, '0')
+      parts.push('')
+    }
+  }
+  return parts.join('/')
+}

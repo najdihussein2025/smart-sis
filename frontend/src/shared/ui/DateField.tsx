@@ -3,7 +3,7 @@ import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/style.css'
 import { CalendarDays } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
-import { dateToIso, dmyToIso, isoToDate, isoToDmy } from '@/shared/lib/dates'
+import { dateToIso, dmyToIso, isoToDate, isoToDmy, maskDmy } from '@/shared/lib/dates'
 
 export interface DateFieldProps {
   label: string
@@ -136,7 +136,7 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
           value={text}
           onChange={(e) => {
             setRefused(null)
-            setText(e.target.value)
+            setText(maskDmy(e.target.value))
           }}
           onBlur={commitTyped}
           onKeyDown={(e) => {
