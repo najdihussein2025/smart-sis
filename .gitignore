@@ -5,6 +5,7 @@ obj/
 *.suo
 .vs/
 TestResults/
+App_Data/
 *.db
 appsettings.*.local.json
 
