@@ -22,6 +22,8 @@ import { StudentSupportPage } from '@/features/support/pages/StudentSupportPage'
 import { StudentSupportRequestPage } from '@/features/support/pages/StudentSupportRequestPage'
 import { AdminSupportPage } from '@/features/support/pages/AdminSupportPage'
 import { AdminSupportRequestPage } from '@/features/support/pages/AdminSupportRequestPage'
+import { InstructorAttendancePage } from '@/features/attendance/pages/InstructorAttendancePage'
+import { StudentAttendancePage } from '@/features/attendance/pages/StudentAttendancePage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -57,9 +59,9 @@ export const routes: RouteObject[] = [
       { path: 'finance', element: <StudentFinancePage /> },
       { path: 'support', element: <StudentSupportPage /> },
       { path: 'support/:id', element: <StudentSupportRequestPage /> },
+      { path: 'attendance', element: <StudentAttendancePage /> },
       ...soon([
         ['grades', 'Grades', 5],
-        ['attendance', 'Attendance', 5],
         ['assistant', 'Assistant', 7],
       ]),
     ],
@@ -75,8 +77,8 @@ export const routes: RouteObject[] = [
       { index: true, element: <InstructorDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'schedule', element: <TeachingSchedulePage /> },
+      { path: 'attendance', element: <InstructorAttendancePage /> },
       ...soon([
-        ['attendance', 'Attendance', 5],
         ['grading', 'Grading', 5],
         ['announcements', 'Announcements', 6],
       ]),
