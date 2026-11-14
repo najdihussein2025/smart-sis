@@ -78,3 +78,39 @@ Dropping sets `Status = Dropped`, `CountsInGpa = false`. Re-enrolling later crea
   **Batches** (paid / charged count, "Show charges" filters the Charges tab by that batch).
 - The payment dialog shows amount, paid and remaining balance, offers "Full balance", and refuses more than the balance
   before sending (F3 in the browser; the API checks again). Paid charges have no "Record payment" button.
+## PB-13/PB-14 Support
+
+### Student side (T50, T51)
+- Routes: `GET /api/support/categories`, `GET|POST /api/support/requests`, `GET /api/support/requests/{id}`,
+  `POST /api/support/requests/{id}/messages`. The student id always comes from the token.
+- Another student's request answers **404**, not 403, so request ids can't be probed.
+- The description is stored on the request; the thread (`SupportMessages`) holds the replies that follow it.
+- A **Closed** request takes no replies from anyone (409 `request_closed`): the student submits a new request.
+  A student reply on a **Resolved** request reopens it (Open, `ResolvedAt` cleared), since it means the problem isn't solved.
+- A student reply notifies the assigned admin in-app (no email); unassigned requests are seen in the inbox.
+- Lists are ordered by newest activity (latest reply, else submission time).
+- Demo data: `SupportDevSeed` (Order 400) adds four simulated requests, one per status, three for student 3001.
+
+### Admin inbox (T53, T54)
+- Routes under `/api/admin/support` (Admin policy): list with filters `status`, `categoryId`, `assigned` (`Any` / `Me` /
+  `Unassigned`) and `search` (subject, student name or university id); `GET /{id}`; `PUT /{id}/status`;
+  `PUT /{id}/assignee` (`adminId` of an active admin, or null to unassign); `POST /{id}/messages`; `GET /admins`
+  (active admins for the assignee list).
+- Any admin can act on any request (C3); assignment only shows who is handling it.
+- Status changes are free in every direction (an admin can reopen a closed request). `ResolvedAt` is stamped on the first
+  move to Resolved or Closed and cleared when the request goes back to Open / In progress. Setting the same status again
+  changes nothing and sends nothing.
+- The student gets a `Support` notification **and** a queued email (C2) when an admin replies and when the status changes.
+  Assigning a request to another admin notifies that admin in-app. Assignment itself doesn't notify the student.
+- An admin reply on an **Open** request moves it to **In progress**. Admins can't reply on a Closed request either
+  (409 `request_closed`): reopen it first.
+- Support emails are built inside the Support feature (`SupportNotifier`), not in `Shared/Email/EmailTemplates.cs`, to keep
+  the feature self-contained.
+
+### Support categories
+- Managed on the support inbox page (Categories tab), not on `/admin/lookups`: `GET|POST /api/admin/support/categories`,
+  `PUT|DELETE /api/admin/support/categories/{id}`.
+- Names are unique ignoring case (409 `duplicate_category`), 1–100 characters.
+- A category used by any request can't be deleted (409 `category_in_use`); rename it instead. An **unused** category is
+  deleted for good (hard delete): nothing refers to it, and soft delete (D1) is only required for users.
+- No schema change was needed, so there is no migration.
