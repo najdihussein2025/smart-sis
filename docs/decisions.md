@@ -71,3 +71,17 @@ without a migration. Notifications already sent stay in the bell; their link ope
   twice. No migration was needed. A `NotifiedAt` column on `Announcements` would make this check cheaper if the table
   grows; it was left out because this sprint must not add migrations.
 - The audience is resolved with one query of user ids and inserted in one `SaveChanges` (`INotificationService.NotifyMany`).
+
+### Notifications bell
+- `GET /api/notifications` (paged, newest first, `unreadOnly`), `GET /api/notifications/unread-count`,
+  `POST /api/notifications/{id}/read` and `POST /api/notifications/read-all`, for any signed-in role. The user comes
+  from the token; another user's notification id answers 404 (not 403), so ids can't be probed. Marking read twice is a no-op.
+- The bell asks for the unread count every 60 s and loads the latest 10 only while the dropdown is open. Opening a
+  notification marks it read and goes to its link.
+- Notifications are never deleted by these endpoints (no "clear"); they stay as history.
+
+### Email outbox retries (rule C2)
+- `EmailOutboxJob` still runs every 30 s, but only picks emails that are due: a new email at once, then after a failed
+  attempt it waits 1, 2, 4 and 8 minutes (`EmailRetryPolicy`). After `MaxAttempts` (5) failures the email is `Failed`.
+- The last attempt time is the row's `UpdatedAt` (only the job writes queued rows), so no schema change was needed.
+  The due check runs in SQL (one condition per attempt count).

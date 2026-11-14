@@ -1,10 +1,15 @@
 using SmartSis.Api.Features.Notifications.Interfaces;
+using SmartSis.Api.Features.Notifications.Models.Entities;
+using SmartSis.Api.Features.Notifications.Rules;
 using SmartSis.Api.Shared.Data;
 using SmartSis.Api.Shared.Email;
 
 namespace SmartSis.Api.Features.Notifications.Jobs;
 
-/// <summary>Sends queued emails every 30 seconds. A failed send is retried up to EmailOutboxMessage.MaxAttempts.</summary>
+/// <summary>
+/// Sends queued emails every 30 seconds. A failed send is retried with exponential backoff (<see cref="EmailRetryPolicy"/>:
+/// 1, 2, 4, 8 minutes) and marked Failed after EmailOutboxMessage.MaxAttempts attempts.
+/// </summary>
 public sealed class EmailOutboxJob(
     IServiceScopeFactory scopes,
     IEmailSender sender,
@@ -37,7 +42,8 @@ public sealed class EmailOutboxJob(
         var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var batch = await repo.GetQueuedEmailsAsync(BatchSize, ct);
+        var cutoffs = EmailRetryPolicy.DueCutoffs(clock.GetUtcNow().UtcDateTime, EmailOutboxMessage.MaxAttempts);
+        var batch = await repo.GetDueEmailsAsync(cutoffs, BatchSize, ct);
         if (batch.Count == 0) return;
 
         foreach (var message in batch)
