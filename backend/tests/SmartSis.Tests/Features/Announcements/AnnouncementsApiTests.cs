@@ -129,6 +129,25 @@ public sealed class AnnouncementsApiTests(SisApiFactory factory) : IClassFixture
     }
 
     [Fact]
+    public async Task AdminPost_DoesNotNotifyDeactivatedUsers()
+    {
+        await factory.AddStudentAsync(3901);
+        var deactivated = await factory.UserIdAsync(3901);
+        await factory.WithDbAsync(async db =>
+        {
+            var u = await db.Set<SmartSis.Api.Features.Users.Models.Entities.User>().SingleAsync(x => x.Id == deactivated);
+            u.MarkDeleted(DateTime.UtcNow);
+            await db.SaveChangesAsync();
+        });
+
+        var created = await CreateAsAdminAsync(AdminPost("Only active users (test)", AnnouncementScope.Students));
+
+        var notified = (await NotificationsOfAsync(created.Id)).Select(n => n.UserId).ToList();
+        Assert.NotEmpty(notified);
+        Assert.DoesNotContain(deactivated, notified);
+    }
+
+    [Fact]
     public async Task AdminPost_Major_NotifiesOnlyStudentsOfThatMajor()
     {
         var mathMajor = 0;

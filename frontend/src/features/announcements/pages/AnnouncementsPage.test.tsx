@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { screen, waitFor, within } from '@testing-library/react'
 import { server } from '@/test/server'
-import { lookups, paged } from '@/test/fixtures'
+import { lookups, paged, profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
 import type { Announcement, AnnouncementSection, SaveAnnouncementRequest, SaveSectionAnnouncementRequest } from '../types'
 
@@ -55,6 +55,17 @@ describe('AnnouncementsPage', () => {
     expect(screen.queryByRole('button', { name: /New announcement/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  })
+
+  it('is in the student navigation', async () => {
+    mockFeed([welcome])
+    server.use(http.get('/api/profile', () => HttpResponse.json(profileFor('Student'))))
+    const { user, router } = renderAt('/student', { as: 'Student' })
+
+    await user.click(within(screen.getAllByRole('navigation', { name: 'Student navigation' })[0]!).getByRole('link', { name: 'Announcements' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/student/announcements'))
+    expect(await screen.findByRole('article', { name: 'Welcome to the new Smart SIS' })).toBeInTheDocument()
   })
 
   it('highlights the announcement a notification links to', async () => {
