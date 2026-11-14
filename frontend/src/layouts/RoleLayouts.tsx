@@ -12,6 +12,7 @@ const studentNav: NavItem[] = [
   { to: '/student/grades', label: 'Grades', icon: GraduationCap },
   { to: '/student/attendance', label: 'Attendance', icon: ClipboardCheck },
   { to: '/student/finance', label: 'Financial account', icon: CreditCard },
+  { to: '/student/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/student/support', label: 'Support', icon: LifeBuoy },
   { to: '/student/assistant', label: 'Assistant', icon: MessageSquareText },
 ]
