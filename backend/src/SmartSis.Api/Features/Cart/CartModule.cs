@@ -1,10 +1,15 @@
+using SmartSis.Api.Features.Cart.Interfaces;
+using SmartSis.Api.Features.Cart.Repositories;
+using SmartSis.Api.Features.Cart.Services;
+
 namespace SmartSis.Api.Features.Cart;
 
 public static class CartModule
 {
     public static IServiceCollection AddCartFeature(this IServiceCollection services)
     {
-        // TODO(phase-4): register ICartService / ICartRepository here.
+        services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<ICartService, CartService>();
         return services;
     }
 }

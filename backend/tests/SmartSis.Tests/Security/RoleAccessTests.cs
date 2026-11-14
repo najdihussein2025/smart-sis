@@ -96,5 +96,41 @@ public sealed class RoleAccessTests(SisApiFactory factory) : IClassFixture<SisAp
         Content = method is "POST" or "PUT" ? new StringContent("{}", System.Text.Encoding.UTF8, "application/json") : null,
     };
 
-    // TODO(phase-3): wrong role → 403 for student and instructor controllers as they are added.
+    /// <summary>Every student-only route. Add a row for each new one.</summary>
+    public static TheoryData<string, string> StudentEndpoints => new()
+    {
+        { "GET", "/api/catalog/courses" },
+        { "GET", "/api/catalog/courses/1" },
+        { "GET", "/api/catalog/majors" },
+        { "GET", "/api/cart" },
+        { "POST", "/api/cart" },
+        { "DELETE", "/api/cart/1" },
+    };
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(StudentEndpoints))]
+    public async Task StudentEndpoint_NoToken_Returns401(string method, string url)
+    {
+        var res = await factory.CreateClient().SendAsync(Request(method, url));
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(StudentEndpoints))]
+    public async Task StudentEndpoint_InstructorToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.InstructorId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(StudentEndpoints))]
+    public async Task StudentEndpoint_AdminToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.AdminId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
 }
