@@ -17,6 +17,7 @@ import { CartPage } from '@/features/cart/pages/CartPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
 import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
+import { StudentGradesPage } from '@/features/grading/pages/StudentGradesPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
 /** Routes not built yet: [path, title, phase]. Replace each with the real page when its phase lands. */
@@ -47,9 +48,9 @@ export const routes: RouteObject[] = [
       { path: 'courses', element: <CatalogPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'cart', element: <CartPage /> },
+      { path: 'grades', element: <StudentGradesPage /> },
       ...soon([
         ['schedule', 'Schedule', 3],
-        ['grades', 'Grades', 5],
         ['attendance', 'Attendance', 5],
         ['finance', 'Financial account', 3],
         ['support', 'Support', 6],
