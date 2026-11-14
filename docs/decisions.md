@@ -404,3 +404,9 @@ Traits, question bank, careers with roadmaps and course-trait tags are tabs of o
   already `alert` / `status`.
 - Colour is never the only signal: the attendance Present / Absent choice now shows a tick on the chosen option, and
   dashboard warning tones always come with words in the hint.
+
+### Responsive layouts (T78)
+- Breakpoints checked: 360, 768, 1024, 1440 px (results in docs/usability.md). Rule: the page never scrolls sideways;
+  wide content scrolls inside its own box (`TableScroll`, tab lists).
+- Below `sm` the notifications dropdown is a full-width panel under the top bar instead of hanging off the bell.
+- Dashboard "today" uses the UTC date (same as attendance); known gap for the first hours of the local day.

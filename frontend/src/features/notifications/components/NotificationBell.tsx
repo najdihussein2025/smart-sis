@@ -81,7 +81,7 @@ export function NotificationBell() {
           id={panelId}
           role="region"
           aria-label="Notifications"
-          className="absolute right-0 top-12 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-xl"
+          className="fixed inset-x-4 top-16 z-50 overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-xl sm:absolute sm:inset-x-auto sm:top-12 sm:right-0 sm:w-96"
         >
           <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
             <h2 className="font-display text-base font-semibold text-ink">Notifications</h2>
