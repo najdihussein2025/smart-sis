@@ -22,6 +22,14 @@ public static class EmailTemplates
             One more absence beyond the limit will drop you from the course with an F.</p>
             """));
 
+    public static (string Subject, string Body) AbsenceAutoDropped(string fullName, string courseCode, int absences, int limit) => (
+        $"Dropped from {courseCode} for absences",
+        Wrap($"""
+            <p>Hello {E(fullName)},</p>
+            <p>You have <strong>{absences}</strong> absences in <strong>{E(courseCode)}</strong>, more than the limit of {limit}.
+            You have been dropped from the course and it is recorded as <strong>F</strong> in your GPA.</p>
+            """));
+
     private static string E(string s) => WebUtility.HtmlEncode(s);
 
     private static string Wrap(string inner) =>

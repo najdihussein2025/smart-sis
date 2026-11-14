@@ -3,6 +3,7 @@ using SmartSis.Api.Features.Attendance.Enums;
 using SmartSis.Api.Features.Attendance.Interfaces;
 using SmartSis.Api.Features.Attendance.Models.Dtos;
 using SmartSis.Api.Features.Attendance.Models.Entities;
+using SmartSis.Api.Features.Attendance.Rules;
 using SmartSis.Api.Features.Enrollments.Enums;
 using SmartSis.Api.Features.Enrollments.Models.Entities;
 using SmartSis.Api.Features.Sections.Models.Entities;
@@ -33,7 +34,7 @@ public sealed class AttendanceRepository(SisDbContext db) : IAttendanceRepositor
             })
             .ToListAsync(ct);
         return rows.Select(r => new TeachingSectionDto(
-            r.Id, r.Code, r.Name, r.SectionCode, r.Credits, r.Credits * 3, r.StartDate, r.EndDate, r.Enrolled, r.Meetings)).ToList();
+            r.Id, r.Code, r.Name, r.SectionCode, r.Credits, AbsencePolicy.LimitFor(r.Credits), r.StartDate, r.EndDate, r.Enrolled, r.Meetings)).ToList();
     }
 
     public Task<MeetingInfo?> GetMeetingAsync(int meetingId, CancellationToken ct) =>

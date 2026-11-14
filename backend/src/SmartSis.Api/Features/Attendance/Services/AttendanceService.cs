@@ -4,19 +4,26 @@ using SmartSis.Api.Features.Attendance.Interfaces;
 using SmartSis.Api.Features.Attendance.Models.Dtos;
 using SmartSis.Api.Features.Attendance.Models.Entities;
 using SmartSis.Api.Features.Attendance.Rules;
+using SmartSis.Api.Features.Enrollments.Interfaces;
+using SmartSis.Api.Features.Notifications.Enums;
+using SmartSis.Api.Features.Notifications.Interfaces;
 using SmartSis.Api.Features.Sections.Models.Entities;
 using SmartSis.Api.Shared.Auth;
 using SmartSis.Api.Shared.Data;
+using SmartSis.Api.Shared.Email;
 using SmartSis.Api.Shared.Exceptions;
 
 namespace SmartSis.Api.Features.Attendance.Services;
 
 /// <summary>
 /// PB-10: an instructor takes attendance for a meeting of a section they teach on a date. The session, its records and
-/// everything the absences cause are saved in one transaction.
+/// everything the absences cause (AbsenceAlerts, queued emails, notifications, auto-drops) are saved in one transaction.
 /// </summary>
 public sealed class AttendanceService(
     IAttendanceRepository attendance,
+    IEnrollmentService enrollments,
+    IEmailQueue email,
+    INotificationService notifications,
     ICurrentUser me,
     IUnitOfWork uow,
     TimeProvider clock) : IAttendanceService
@@ -90,9 +97,11 @@ public sealed class AttendanceService(
                     session.Records.Add(new AttendanceRecord { EnrollmentId = mark.EnrollmentId, Status = mark.Status });
                 attendance.Add(session);
 
+                var absentIds = request.Records.Where(r => r.Status == AttendanceStatus.Absent).Select(r => r.EnrollmentId).ToList();
+                var alerts = await ApplyAbsenceRulesAsync(meeting, roster.Where(r => absentIds.Contains(r.EnrollmentId)).ToList(), instructorId, ct);
+
                 await uow.SaveChangesAsync(ct);
-                var absent = request.Records.Count(r => r.Status == AttendanceStatus.Absent);
-                return new SubmitAttendanceResultDto(session.Id, request.Records.Count - absent, absent, []);
+                return new SubmitAttendanceResultDto(session.Id, request.Records.Count - absentIds.Count, absentIds.Count, alerts);
             }, ct);
         }
         catch (DbUpdateException)
@@ -101,6 +110,65 @@ public sealed class AttendanceService(
             if (await attendance.FindSessionAsync(request.MeetingId, request.SessionDate, ct) is null) throw;
             var meeting = await OwnMeetingAsync(request.MeetingId, ct);
             throw AlreadyTakenError(meeting, request.SessionDate);
+        }
+    }
+
+    /// <summary>
+    /// Rules A2 and A3 for the students marked absent: each one's absences now include this session (one more than saved).
+    /// A due alert is recorded in AbsenceAlerts (so it is sent once) with an email and a notification; at limit + 1 the
+    /// student is dropped through the Enrollments feature. Nothing is saved here: the submission's transaction commits it.
+    /// </summary>
+    private async Task<List<AbsenceAlertDto>> ApplyAbsenceRulesAsync(
+        MeetingInfo meeting, List<RosterStudent> absent, int instructorId, CancellationToken ct)
+    {
+        if (absent.Count == 0) return [];
+        var ids = absent.Select(a => a.EnrollmentId).ToList();
+        var saved = await attendance.GetAbsenceCountsAsync(ids, ct);
+        var sent = await attendance.GetSentAlertsAsync(ids, ct);
+        var limit = AbsencePolicy.LimitFor(meeting.Credits);
+        var alerts = new List<AbsenceAlertDto>();
+
+        foreach (var student in absent)
+        {
+            var absences = saved.GetValueOrDefault(student.EnrollmentId) + 1;
+            var decision = AbsencePolicy.Evaluate(absences, limit, sent.GetValueOrDefault(student.EnrollmentId) ?? []);
+
+            if (decision.AutoDrop)
+                await enrollments.DropForAbsenceAsync(student.EnrollmentId, instructorId, ct);
+
+            if (decision.Alert is { } level)
+            {
+                attendance.Add(new AbsenceAlert { EnrollmentId = student.EnrollmentId, Level = level, AbsenceCount = absences, SentAt = Now });
+                Tell(student, meeting.CourseCode, level, absences, limit);
+                alerts.Add(new AbsenceAlertDto(student.EnrollmentId, student.FullName, level, absences, limit));
+            }
+        }
+        return alerts;
+    }
+
+    /// <summary>Queues the email (rule C2) and the in-app notification for an alert.</summary>
+    private void Tell(RosterStudent student, string course, AbsenceAlertLevel level, int absences, int limit)
+    {
+        const string link = "/student/attendance";
+        var (subject, body) = level == AbsenceAlertLevel.AutoDropped
+            ? EmailTemplates.AbsenceAutoDropped(student.FullName, course, absences, limit)
+            : EmailTemplates.AbsenceWarning(student.FullName, course, absences, limit);
+        email.Enqueue(student.Email, subject, body);
+
+        switch (level)
+        {
+            case AbsenceAlertLevel.Warning:
+                notifications.Notify(student.StudentId, NotificationType.AbsenceWarning, $"Attendance warning: {course}",
+                    $"You have {absences} absences in {course}. The limit is {limit}; going over it drops you from the course with an F.", link);
+                break;
+            case AbsenceAlertLevel.Limit:
+                notifications.Notify(student.StudentId, NotificationType.AbsenceLimit, $"Absence limit reached: {course}",
+                    $"You have reached the absence limit ({limit}) in {course}. One more absence drops you from the course with an F.", link);
+                break;
+            default:
+                notifications.Notify(student.StudentId, NotificationType.AutoDropped, $"Dropped from {course}",
+                    $"You were dropped from {course} after {absences} absences (limit {limit}). The course is recorded as F in your GPA.", link);
+                break;
         }
     }
 
@@ -141,5 +209,5 @@ public sealed class AttendanceService(
 
     private static AttendanceSheetDto Sheet(MeetingInfo m, DateOnly date, int? sessionId, DateTime? submittedAt, List<AttendanceSheetRowDto> rows) => new(
         m.SectionId, m.CourseCode, m.SectionCode, m.MeetingId, m.DayOfWeek, m.StartTime, m.Type, date, sessionId, submittedAt,
-        m.Credits * 3, rows);
+        AbsencePolicy.LimitFor(m.Credits), rows);
 }
