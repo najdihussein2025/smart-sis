@@ -13,6 +13,8 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
         b.Property(x => x.Body).HasMaxLength(1000);
         b.Property(x => x.Link).HasMaxLength(512);
         b.HasIndex(x => new { x.UserId, x.ReadAt });
+        b.HasIndex(x => new { x.UserId, x.CreatedAt });   // the bell list: newest first, paged
+        b.HasIndex(x => new { x.Type, x.Link });          // "is this announcement notified yet" (exact links, IN list)
         b.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
     }
 }

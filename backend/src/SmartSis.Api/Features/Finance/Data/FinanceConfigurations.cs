@@ -25,6 +25,8 @@ internal sealed class ChargeConfiguration : IEntityTypeConfiguration<Charge>
         b.ToTable("Charges", t => t.HasCheckConstraint("CK_Charges_Amount", "[Amount] > 0"));
         b.Property(x => x.Title).HasMaxLength(128);
         b.HasIndex(x => new { x.StudentId, x.Status });
+        b.HasIndex(x => new { x.BatchId, x.Status });   // batch list: charges and paid count per batch
+        b.HasIndex(x => new { x.Status, x.DueDate });   // admin charges list filtered by status, by due date
         b.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId);
         b.HasOne(x => x.Batch).WithMany().HasForeignKey(x => x.BatchId).IsRequired(false);
         b.HasOne(x => x.Term).WithMany().HasForeignKey(x => x.TermId);

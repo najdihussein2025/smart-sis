@@ -1722,3 +1722,96 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    DROP INDEX [IX_SupportMessages_RequestId] ON [SupportMessages];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    DROP INDEX [IX_ChatConversations_StudentId] ON [ChatConversations];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    DROP INDEX [IX_Charges_BatchId] ON [Charges];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_SupportMessages_RequestId_CreatedAt] ON [SupportMessages] ([RequestId], [CreatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Notifications_Type_Link] ON [Notifications] ([Type], [Link]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Notifications_UserId_CreatedAt] ON [Notifications] ([UserId], [CreatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_ChatConversations_StudentId_UpdatedAt] ON [ChatConversations] ([StudentId], [UpdatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Charges_BatchId_Status] ON [Charges] ([BatchId], [Status]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Charges_Status_DueDate] ON [Charges] ([Status], [DueDate]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Announcements_PublishAt] ON [Announcements] ([PublishAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261114223931_AddPerformanceIndexes'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261114223931_AddPerformanceIndexes', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

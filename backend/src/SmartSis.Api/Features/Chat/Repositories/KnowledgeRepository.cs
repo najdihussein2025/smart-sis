@@ -9,10 +9,12 @@ namespace SmartSis.Api.Features.Chat.Repositories;
 
 public sealed class KnowledgeRepository(SisDbContext db) : IKnowledgeRepository
 {
-    private IQueryable<KnowledgeDocumentDto> Dtos()
+    // Filter and order on the entity, then project: SQL Server can't translate ORDER BY / WHERE on the members of a
+    // DTO built with a constructor (EF InMemory can, so the API tests didn't catch it).
+    private IQueryable<KnowledgeDocumentDto> Dtos(IQueryable<KnowledgeDocument> documents)
     {
         var users = db.Set<User>().IgnoreQueryFilters();
-        return db.Set<KnowledgeDocument>().AsNoTracking()
+        return documents.AsNoTracking()
             .Select(d => new KnowledgeDocumentDto(
                 d.Id, d.Title, d.Status, d.Chunks.Count, d.FileUrl != "",
                 users.Where(u => u.Id == d.UploadedBy).Select(u => u.FullName).FirstOrDefault(),
@@ -20,10 +22,10 @@ public sealed class KnowledgeRepository(SisDbContext db) : IKnowledgeRepository
     }
 
     public Task<List<KnowledgeDocumentDto>> ListAsync(CancellationToken ct) =>
-        Dtos().OrderByDescending(d => d.CreatedAt).ThenByDescending(d => d.Id).ToListAsync(ct);
+        Dtos(db.Set<KnowledgeDocument>().OrderByDescending(d => d.CreatedAt).ThenByDescending(d => d.Id)).ToListAsync(ct);
 
     public Task<KnowledgeDocumentDto?> GetDtoAsync(int id, CancellationToken ct) =>
-        Dtos().FirstOrDefaultAsync(d => d.Id == id, ct);
+        Dtos(db.Set<KnowledgeDocument>().Where(d => d.Id == id)).FirstOrDefaultAsync(ct);
 
     public Task<KnowledgeDocument?> FindAsync(int id, CancellationToken ct) =>
         db.Set<KnowledgeDocument>().FirstOrDefaultAsync(d => d.Id == id, ct);
