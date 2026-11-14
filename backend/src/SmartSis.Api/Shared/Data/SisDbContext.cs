@@ -15,8 +15,20 @@ public sealed class SisDbContext(DbContextOptions<SisDbContext> options) : DbCon
         builder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(32);
         builder.Properties<decimal>().HavePrecision(10, 2);
         builder.Properties<string>().HaveMaxLength(256);
-        builder.Properties<DateTime>().HaveColumnType("datetime2");
+        builder.Properties<DateTime>().HaveColumnType("datetime2").HaveConversion<UtcDateTimeConverter>();
+        builder.Properties<DateTime?>().HaveConversion<UtcDateTimeConverter>();
     }
+
+    /// <summary>
+    /// Every DateTime we store is UTC, but SQL Server's datetime2 doesn't keep the kind: values read back as
+    /// <see cref="DateTimeKind.Unspecified"/>, the API then sends them without the trailing "Z", and browsers read
+    /// them as local time (term windows shifted by the viewer's offset, and shifted again on every save).
+    /// Marking them UTC on read fixes that. Writes are unchanged and the provider type stays DateTime, so the
+    /// model snapshot and migrations don't change.
+    /// </summary>
+    public sealed class UtcDateTimeConverter() : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+        v => v,
+        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
