@@ -10,6 +10,8 @@ public static class GradingModule
     {
         services.AddScoped<IGradingRepository, GradingRepository>();
         services.AddScoped<IGradeComponentService, GradeComponentService>();
+        services.AddScoped<IGradeEntryService, GradeEntryService>();
+        services.AddScoped<ITermResultService, TermResultService>();
         return services;
     }
 }

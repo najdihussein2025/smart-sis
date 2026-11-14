@@ -82,6 +82,15 @@ public sealed class EnrollmentRepository(SisDbContext db) : IEnrollmentRepositor
     public Task<Enrollment?> FindAsync(int enrollmentId, CancellationToken ct) =>
         db.Set<Enrollment>().FirstOrDefaultAsync(e => e.Id == enrollmentId, ct);
 
+    public Task<int> GetCourseIdAsync(int sectionId, CancellationToken ct) =>
+        db.Set<Section>().Where(s => s.Id == sectionId).Select(s => s.CourseId).FirstAsync(ct);
+
+    public Task<List<Enrollment>> FindCountingAttemptsAsync(int studentId, int courseId, int exceptEnrollmentId, CancellationToken ct) =>
+        db.Set<Enrollment>()
+            .Where(e => e.StudentId == studentId && e.Section.CourseId == courseId && e.Id != exceptEnrollmentId && e.CountsInGpa
+                        && (e.Status == EnrollmentStatus.Completed || e.Status == EnrollmentStatus.DroppedAbsence))
+            .ToListAsync(ct);
+
     public void Add(Enrollment enrollment) => db.Set<Enrollment>().Add(enrollment);
     public void Add(EnrollmentAction action) => db.Set<EnrollmentAction>().Add(action);
 }

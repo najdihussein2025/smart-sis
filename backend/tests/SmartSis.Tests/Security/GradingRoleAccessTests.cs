@@ -17,10 +17,11 @@ public sealed class GradingRoleAccessTests(SisApiFactory factory) : IClassFixtur
 
     public static TheoryData<string, string> InstructorEndpoints => new()
     {
-    };
-
-    public static TheoryData<string, string> StudentEndpoints => new()
-    {
+        { "GET", "/api/instructor/grading/sections" },
+        { "GET", "/api/instructor/grading/sections/1" },
+        { "GET", "/api/instructor/grading/sections/1/components/1" },
+        { "PUT", "/api/instructor/grading/sections/1/components/1" },
+        { "POST", "/api/instructor/grading/sections/1/finalize" },
     };
 
     // Authorization runs before model binding, so an empty JSON body is enough for POST / PUT.
@@ -46,4 +47,16 @@ public sealed class GradingRoleAccessTests(SisApiFactory factory) : IClassFixtur
     [Theory, Trait("SR", "SR-22"), MemberData(nameof(AdminEndpoints))]
     public async Task AdminEndpoint_InstructorToken_Returns403(string method, string url) =>
         Assert.Equal(HttpStatusCode.Forbidden, await SendAsync(SisApiFactory.InstructorId, method, url));
+
+    [Theory, Trait("SR", "SR-22"), MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_NoToken_Returns401(string method, string url) =>
+        Assert.Equal(HttpStatusCode.Unauthorized, await SendAsync(null, method, url));
+
+    [Theory, Trait("SR", "SR-22"), MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_StudentToken_Returns403(string method, string url) =>
+        Assert.Equal(HttpStatusCode.Forbidden, await SendAsync(SisApiFactory.StudentId, method, url));
+
+    [Theory, Trait("SR", "SR-22"), MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_AdminToken_Returns403(string method, string url) =>
+        Assert.Equal(HttpStatusCode.Forbidden, await SendAsync(SisApiFactory.AdminId, method, url));
 }

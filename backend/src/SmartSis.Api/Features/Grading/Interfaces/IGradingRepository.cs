@@ -1,7 +1,27 @@
+using SmartSis.Api.Features.Enrollments.Enums;
 using SmartSis.Api.Features.Grading.Models.Dtos;
 using SmartSis.Api.Features.Grading.Models.Entities;
+using SmartSis.Api.Features.Grading.Rules;
 
 namespace SmartSis.Api.Features.Grading.Interfaces;
+
+/// <summary>The facts about a section that grading needs.</summary>
+public sealed record GradingSectionInfo(
+    int Id, int CourseId, int TermId, int? InstructorId, string CourseCode, string CourseName, string SectionCode, string TermName);
+
+/// <summary>A component's numbers.</summary>
+public sealed record ComponentInfo(int Id, string Name, decimal MaxGrade, decimal Weight);
+
+/// <summary>An Enrolled or Completed student of a section.</summary>
+public sealed record RosterRow(int EnrollmentId, int StudentId, long UniversityId, string FullName, EnrollmentStatus Status);
+
+/// <summary>Counts for the instructor's section list.</summary>
+public sealed record TeachingSectionRow(
+    int SectionId, string CourseCode, string CourseName, string SectionCode, string TermName,
+    int Enrolled, int Completed, IReadOnlyList<decimal> Weights, int ActiveScores);
+
+/// <summary>A graded attempt with the start date of its term, for ordering.</summary>
+public sealed record AttemptRow(GradedAttempt Attempt, DateOnly TermStart);
 
 /// <summary>EF queries for the Grading feature. No SaveChanges here.</summary>
 public interface IGradingRepository
@@ -25,4 +45,32 @@ public interface IGradingRepository
 
     void Add(GradeComponent component);
     void Remove(GradeComponent component);
+
+    // ---- Grade entry (instructor) ----
+    Task<GradingSectionInfo?> GetSectionAsync(int sectionId, CancellationToken ct);
+    Task<List<TeachingSectionRow>> ListTeachingSectionsAsync(int instructorId, CancellationToken ct);
+    Task<List<ComponentInfo>> ComponentsAsync(int courseId, int termId, CancellationToken ct);
+
+    /// <summary>Enrolled and Completed students of the section, by name. Deactivated students stay on it (their grades are kept).</summary>
+    Task<List<RosterRow>> RosterAsync(int sectionId, CancellationToken ct);
+
+    /// <summary>Tracked scores of these enrollments, optionally for one component.</summary>
+    Task<List<StudentGrade>> GradesAsync(IReadOnlyCollection<int> enrollmentIds, int? componentId, CancellationToken ct);
+
+    /// <summary>The grade scale, highest band first.</summary>
+    Task<List<GradeBand>> GradeScaleAsync(CancellationToken ct);
+
+    void Add(StudentGrade grade);
+    void Remove(StudentGrade grade);
+
+    // ---- Term results (rule G6) ----
+
+    /// <summary>Completed and DroppedAbsence attempts of the student that have grade points, oldest row first.</summary>
+    Task<List<AttemptRow>> GradedAttemptsAsync(int studentId, CancellationToken ct);
+
+    /// <summary>Tracked.</summary>
+    Task<List<TermResult>> TermResultsAsync(int studentId, CancellationToken ct);
+
+    void Add(TermResult result);
+    void Remove(TermResult result);
 }

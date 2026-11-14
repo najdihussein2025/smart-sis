@@ -132,6 +132,17 @@ public sealed class EnrollmentService(
         });
     }
 
+    public async Task CompleteAsync(int enrollmentId, decimal finalPct, string letterGrade, decimal gradePoints, CancellationToken ct)
+    {
+        var enrollment = await enrollments.FindAsync(enrollmentId, ct) ?? throw NotFoundException.For<Enrollment>(enrollmentId);
+        enrollment.Complete(finalPct, letterGrade, gradePoints);
+
+        // Rule G5: only the latest attempt of a course counts in the GPA.
+        var courseId = await enrollments.GetCourseIdAsync(enrollment.SectionId, ct);
+        foreach (var older in await enrollments.FindCountingAttemptsAsync(enrollment.StudentId, courseId, enrollment.Id, ct))
+            older.Supersede();
+    }
+
     private async Task<StudentEnrollmentState> StateAsync(int studentId, CurrentTerm term, CancellationToken ct) => new(
         WindowOf(term),
         await enrollments.GetMaxCreditsAsync(studentId, ct),
