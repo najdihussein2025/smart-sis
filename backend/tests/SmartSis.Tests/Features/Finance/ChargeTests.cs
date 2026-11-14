@@ -33,4 +33,33 @@ public sealed class ChargeTests
         var charge = new Charge { Amount = 1000m };
         Assert.Throws<BusinessRuleException>(() => charge.ApplyPayment((decimal)amount, 1, Now, null));
     }
+
+    [Fact]
+    public void ApplyPayment_MoreThanBalance_ThrowsOverpaymentAndKeepsStatus()
+    {
+        var charge = new Charge { Amount = 1000m };
+        charge.ApplyPayment(900m, 1, Now, null);
+
+        var ex = Assert.Throws<BusinessRuleException>(() => charge.ApplyPayment(100.01m, 1, Now, null));
+        Assert.Equal("overpayment", ex.Code);
+        Assert.Equal(ChargeStatus.Partial, charge.Status);
+        Assert.Single(charge.Payments);
+    }
+
+    [Fact]
+    public void ApplyPayment_ExactBalance_IsPaid()
+    {
+        var charge = new Charge { Amount = 1000m };
+        charge.ApplyPayment(1000m, 1, Now, null);
+        Assert.Equal(ChargeStatus.Paid, charge.Status);
+    }
+
+    [Fact]
+    public void ApplyPayment_AlreadyPaid_ThrowsAlreadyPaid()
+    {
+        var charge = new Charge { Amount = 50m };
+        charge.ApplyPayment(50m, 1, Now, null);
+        var ex = Assert.Throws<BusinessRuleException>(() => charge.ApplyPayment(1m, 1, Now, null));
+        Assert.Equal("already_paid", ex.Code);
+    }
 }

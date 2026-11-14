@@ -37,3 +37,44 @@ Dropping sets `Status = Dropped`, `CountsInGpa = false`. Re-enrolling later crea
 ### Frontend placement
 - The student catalog lives in `features/catalog` (the admin course pages stay in `features/courses`).
 - Enroll results, swap and drop live on the Cart page (one registration screen), using the `enrollment` feature's hooks.
+
+## PB-18 Finance
+
+### Endpoints
+- Admin: `/api/admin/finance` — `options` (terms, majors with their active-student count, payment types), `batches` (list, get,
+  create), `charges` (list, get, one-off create) and `charges/{id}/payments`. Student: `GET /api/finance/my`.
+- The dropdown data comes from the finance feature's own `options` endpoint, because `/api/admin/lookups` has no payment types
+  or terms; this keeps the Lookups feature untouched.
+
+### Charge batches (F1)
+- "Active student" = `Users.IsActive` and not soft-deleted. Students are read inside the batch's transaction; the batch, its
+  charges, the notifications and the queued emails are saved together.
+- A major with no active student → `409 no_active_students`, nothing is created (an empty batch would be noise).
+- Later students joining the major are **not** charged automatically; the admin adds a one-off charge.
+- Any due date is accepted (also a past one, to record an old fee). Amounts: > 0, ≤ 1,000,000, at most 2 decimals.
+
+### One-off charges
+- Addressed by University ID (what the admin knows), not by internal id. Unknown or deactivated student → 400 on `universityId`.
+
+### Payments (F2, F3)
+- `PaidAt` is the time the admin records it (no back-dating yet). The charge row is locked (`UPDLOCK, ROWLOCK`) inside the
+  transaction so two admins can't overpay together.
+- 409 codes: `overpayment` (more than the remaining balance), `already_paid`, `invalid_amount`. Payments can't be edited or
+  deleted (no reversal flow yet).
+- Charges and payments of a deactivated student stay visible to the admin (payment history is kept); no notification is sent
+  to a deactivated student.
+
+### Notifications
+- Charged and payment recorded → in-app notification (`Payment`, link `/student/finance`) + queued email. The email texts live
+  in `Features/Finance/Services/FinanceMessages.cs` rather than the shared `EmailTemplates`, to avoid editing shared code.
+
+### Student account
+- Overdue = something still owed and the due date is **before** today (UTC date); due today is not overdue.
+- Outstanding balance = Σ(amount − paid) over unpaid charges; `nextDueDate` = earliest due date today or later of an unpaid charge.
+- "Completed" tab = `Paid`; "Pending" tab = `Pending` + `Partial`.
+
+### Admin payments screen
+- `/admin/payments` has two tabs: **Charges** (search by University ID or name, status, term, major; unpaid first) and
+  **Batches** (paid / charged count, "Show charges" filters the Charges tab by that batch).
+- The payment dialog shows amount, paid and remaining balance, offers "Full balance", and refuses more than the balance
+  before sending (F3 in the browser; the API checks again). Paid charges have no "Record payment" button.

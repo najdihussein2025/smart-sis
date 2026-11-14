@@ -16,6 +16,8 @@ import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
 import { SchedulePage } from '@/features/schedule/pages/SchedulePage'
 import { TeachingSchedulePage } from '@/features/schedule/pages/TeachingSchedulePage'
+import { StudentFinancePage } from '@/features/finance/pages/StudentFinancePage'
+import { AdminPaymentsPage } from '@/features/finance/pages/AdminPaymentsPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -48,10 +50,10 @@ export const routes: RouteObject[] = [
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'schedule', element: <SchedulePage /> },
+      { path: 'finance', element: <StudentFinancePage /> },
       ...soon([
         ['grades', 'Grades', 5],
         ['attendance', 'Attendance', 5],
-        ['finance', 'Financial account', 3],
         ['support', 'Support', 6],
         ['assistant', 'Assistant', 7],
       ]),
@@ -89,10 +91,10 @@ export const routes: RouteObject[] = [
       { path: 'terms', element: <TermsPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'sections', element: <SectionsPage /> },
+      { path: 'payments', element: <AdminPaymentsPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
         ['grade-components', 'Grade components', 2],
-        ['payments', 'Payments', 6],
         ['announcements', 'Announcements', 6],
         ['support', 'Support inbox', 6],
         ['knowledge', 'Knowledge base', 7],

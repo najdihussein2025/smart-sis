@@ -34,8 +34,9 @@ public class Charge : BaseEntity
     /// <summary>Rules F2 + F3. Requires Payments to be loaded.</summary>
     public Payment ApplyPayment(decimal amount, int recordedBy, DateTime paidAt, string? note)
     {
-        if (amount <= 0) throw new BusinessRuleException("Payment amount must be greater than zero.");
-        if (amount > Balance) throw new BusinessRuleException($"Payment is more than the remaining balance ({Balance:0.00}).");
+        if (amount <= 0) throw new BusinessRuleException("Payment amount must be greater than zero.", "invalid_amount");
+        if (Balance <= 0) throw new BusinessRuleException("This charge is already fully paid.", "already_paid");
+        if (amount > Balance) throw new BusinessRuleException($"Payment is more than the remaining balance ({Balance:0.00}).", "overpayment");
 
         var payment = new Payment { Charge = this, Amount = amount, RecordedBy = recordedBy, PaidAt = paidAt, Note = note };
         Payments.Add(payment);
