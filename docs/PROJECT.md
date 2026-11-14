@@ -123,6 +123,8 @@ Each term has two windows:
 - The **admin** defines grade components per course per term; the **instructor** fills in the scores.
 - Final percentage = weighted sum of components, **rounded to the nearest whole number**, then looked up in the grade scale.
 - **Retakes:** only the **latest** completed attempt counts in the GPA.
+- **Finalizing:** the instructor finalizes a section once the components weigh exactly 100% and every score is entered (a missing score is never treated as 0). Each student is then completed with their final %, letter and grade points, and the term results are rebuilt.
+- **Term GPA** shows the grades earned in that term; the **cumulative GPA** uses the latest attempt of each course. GPAs are rounded to 2 decimals.
 - GPA is on a **4.0 scale**:
 
 | Letter | Status | GPA | % |

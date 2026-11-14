@@ -17,6 +17,13 @@ public interface IEnrollmentService
     /// Does not save: the caller's unit of work commits it together with the attendance that caused it.
     /// </summary>
     Task DropForAbsenceAsync(int enrollmentId, int performedBy, CancellationToken ct);
+
+    /// <summary>
+    /// Called by Grading when an instructor finalizes a section: Status = Completed with the final %, letter and points, and
+    /// rule G5: older graded attempts of the same course stop counting in the GPA (CountsInGpa = false).
+    /// Does not save: the caller's unit of work commits it with the rest of the finalization.
+    /// </summary>
+    Task CompleteAsync(int enrollmentId, decimal finalPct, string letterGrade, decimal gradePoints, CancellationToken ct);
 }
 
 /// <summary>The current term's dates.</summary>
@@ -45,6 +52,11 @@ public interface IEnrollmentRepository
     Task<Enrollment?> FindActiveAsync(int studentId, int sectionId, CancellationToken ct);
 
     Task<Enrollment?> FindAsync(int enrollmentId, CancellationToken ct);
+
+    Task<int> GetCourseIdAsync(int sectionId, CancellationToken ct);
+
+    /// <summary>The student's other graded attempts (Completed or DroppedAbsence) of a course that still count in the GPA, tracked.</summary>
+    Task<List<Enrollment>> FindCountingAttemptsAsync(int studentId, int courseId, int exceptEnrollmentId, CancellationToken ct);
 
     void Add(Enrollment enrollment);
     void Add(EnrollmentAction action);

@@ -25,6 +25,9 @@ import { AdminSupportRequestPage } from '@/features/support/pages/AdminSupportRe
 import { InstructorAttendancePage } from '@/features/attendance/pages/InstructorAttendancePage'
 import { StudentAttendancePage } from '@/features/attendance/pages/StudentAttendancePage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
+import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
+import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
+import { StudentGradesPage } from '@/features/grading/pages/StudentGradesPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
 /** Routes not built yet: [path, title, phase]. Replace each with the real page when its phase lands. */
@@ -60,8 +63,8 @@ export const routes: RouteObject[] = [
       { path: 'support', element: <StudentSupportPage /> },
       { path: 'support/:id', element: <StudentSupportRequestPage /> },
       { path: 'attendance', element: <StudentAttendancePage /> },
+      { path: 'grades', element: <StudentGradesPage /> },
       ...soon([
-        ['grades', 'Grades', 5],
         ['assistant', 'Assistant', 7],
       ]),
     ],
@@ -78,8 +81,8 @@ export const routes: RouteObject[] = [
       { path: 'profile', element: <ProfilePage /> },
       { path: 'schedule', element: <TeachingSchedulePage /> },
       { path: 'attendance', element: <InstructorAttendancePage /> },
+      { path: 'grading', element: <InstructorGradingPage /> },
       ...soon([
-        ['grading', 'Grading', 5],
         ['announcements', 'Announcements', 6],
       ]),
     ],
@@ -101,9 +104,9 @@ export const routes: RouteObject[] = [
       { path: 'payments', element: <AdminPaymentsPage /> },
       { path: 'support', element: <AdminSupportPage /> },
       { path: 'support/:id', element: <AdminSupportRequestPage /> },
+      { path: 'grade-components', element: <GradeComponentsPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
-        ['grade-components', 'Grade components', 2],
         ['announcements', 'Announcements', 6],
         ['knowledge', 'Knowledge base', 7],
       ]),
