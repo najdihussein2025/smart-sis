@@ -15,7 +15,8 @@ public sealed class SisDbContext(DbContextOptions<SisDbContext> options) : DbCon
         builder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(32);
         builder.Properties<decimal>().HavePrecision(10, 2);
         builder.Properties<string>().HaveMaxLength(256);
-        builder.Properties<DateTime>().HaveColumnType("datetime2");
+        // UTC everywhere: values read back from datetime2 are marked Kind = Utc, so JSON ends in "Z".
+        builder.Properties<DateTime>().HaveColumnType("datetime2").HaveConversion<UtcDateTimeConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
