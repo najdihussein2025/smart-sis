@@ -38,6 +38,42 @@ public sealed class SupportRoleAccessTests(SisApiFactory factory) : IClassFixtur
         Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
     }
 
+    /// <summary>Admin-only support routes (inbox and categories).</summary>
+    public static TheoryData<string, string> AdminEndpoints => new()
+    {
+        { "GET", "/api/admin/support" },
+        { "GET", "/api/admin/support/admins" },
+        { "GET", "/api/admin/support/1" },
+        { "PUT", "/api/admin/support/1/status" },
+        { "PUT", "/api/admin/support/1/assignee" },
+        { "POST", "/api/admin/support/1/messages" },
+        { "GET", "/api/admin/support/categories" },
+        { "POST", "/api/admin/support/categories" },
+        { "PUT", "/api/admin/support/categories/1" },
+        { "DELETE", "/api/admin/support/categories/1" },
+    };
+
+    [Theory]
+    [MemberData(nameof(AdminEndpoints))]
+    public async Task AdminEndpoint_NoToken_Returns401(string method, string url) =>
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().SendAsync(Request(method, url))).StatusCode);
+
+    [Theory]
+    [MemberData(nameof(AdminEndpoints))]
+    public async Task AdminEndpoint_StudentToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.StudentId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(AdminEndpoints))]
+    public async Task AdminEndpoint_InstructorToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.InstructorId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
+
     // Authorization runs before model binding, so an empty JSON body is enough for POST / PUT.
     private static HttpRequestMessage Request(string method, string url) => new(new HttpMethod(method), url)
     {
