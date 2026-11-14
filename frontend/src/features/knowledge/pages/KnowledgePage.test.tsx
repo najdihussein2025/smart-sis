@@ -119,7 +119,7 @@ describe('KnowledgePage', () => {
       http.get('/api/admin/knowledge', () => HttpResponse.json({ title: 'Could not load documents.' }, { status: 500 })),
     )
     renderAt('/admin/knowledge', { as: 'Admin' })
-    expect(await screen.findByText('Could not load documents.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

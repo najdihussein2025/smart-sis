@@ -87,7 +87,7 @@ describe('CatalogPage', () => {
     mockCatalog()
     server.use(http.get('/api/catalog/courses', () => HttpResponse.json({ title: 'Database unavailable.' }, { status: 500 })))
     renderAt('/student/courses', { as: 'Student' })
-    expect(await screen.findByText('Database unavailable.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

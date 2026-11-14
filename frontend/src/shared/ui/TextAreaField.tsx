@@ -27,9 +27,9 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         aria-invalid={!!error}
         aria-describedby={describedBy}
         className={cn(
-          'block w-full rounded-lg border bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted/70',
+          'block w-full rounded-lg border bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted',
           'focus:outline-none focus:ring-2 focus:ring-accent/40',
-          error ? 'border-danger focus:border-danger' : 'border-line focus:border-brand',
+          error ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-brand',
           className,
         )}
         {...rest}

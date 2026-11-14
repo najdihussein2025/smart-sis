@@ -9,6 +9,7 @@ import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { TextField } from '@/shared/ui/TextField'
 import { useLogin } from '../hooks'
+import { useDocumentTitle } from '@/shared/ui/PageHeader'
 
 const schema = z.object({
   universityId: z
@@ -21,6 +22,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export function LoginPage() {
+  useDocumentTitle('Sign in')
   const { user, signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -83,7 +85,7 @@ export function LoginPage() {
             {...register('password', { onChange: clearServerError })}
           />
           <div className="text-right">
-            <Link to="/forgot-password" className="text-sm font-medium text-brand hover:text-accent">
+            <Link to="/forgot-password" className="text-sm font-medium text-brand hover:text-brand-600 hover:underline">
               Forgot password?
             </Link>
           </div>

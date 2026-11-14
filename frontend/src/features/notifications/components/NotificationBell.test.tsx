@@ -126,7 +126,7 @@ describe('NotificationBell', () => {
     const { user } = renderAt('/student', { as: 'Student' })
 
     await user.click(await screen.findByRole('button', { name: 'Notifications, 1 unread' }))
-    expect(await screen.findByText('Notifications are unavailable.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('button', { name: /CSC 210 A: lab moved this week/ })).toBeInTheDocument()
   })

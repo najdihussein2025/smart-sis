@@ -15,7 +15,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
         id={inputId}
         type="checkbox"
         aria-describedby={hint ? `${inputId}-hint` : undefined}
-        className="mt-0.5 size-4 rounded border-line accent-brand"
+        className="mt-0.5 size-4 rounded border-line-strong accent-brand"
         {...rest}
       />
       <div>

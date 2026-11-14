@@ -193,7 +193,7 @@ describe('InstructorAttendancePage', () => {
       http.get('/api/attendance/teaching', () => HttpResponse.json({ title: 'Could not load your sections.' }, { status: 500 })),
     )
     renderAt('/instructor/attendance', { as: 'Instructor' })
-    expect(await screen.findByText('Could not load your sections.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

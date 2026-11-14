@@ -84,7 +84,7 @@ export function RecommendationsView({ onViewRoadmap }: Props) {
         </ol>
         <div className="border-t border-line bg-canvas/60 px-5 py-4">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Sparkles className="size-4 text-accent" aria-hidden /> Why these careers
+            <Sparkles className="size-4 text-accent-ink" aria-hidden /> Why these careers
           </h3>
           <p className="mt-1.5 text-sm leading-relaxed text-ink">{r.explanation}</p>
           <p className="mt-2 text-xs text-muted">

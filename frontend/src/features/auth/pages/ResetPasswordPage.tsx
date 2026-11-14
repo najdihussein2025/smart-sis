@@ -7,6 +7,7 @@ import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { TextField } from '@/shared/ui/TextField'
 import { useResetPassword } from '../hooks'
+import { useDocumentTitle } from '@/shared/ui/PageHeader'
 
 const schema = z
   .object({
@@ -21,6 +22,7 @@ const schema = z
 type FormValues = z.infer<typeof schema>
 
 export function ResetPasswordPage() {
+  useDocumentTitle('Set a new password')
   const [params] = useSearchParams()
   const token = params.get('token') ?? ''
   const navigate = useNavigate()
@@ -32,7 +34,7 @@ export function ResetPasswordPage() {
       <div className="space-y-6">
         <h1 className="font-display text-3xl font-semibold tracking-tight">Link not valid</h1>
         <Alert>This reset link is incomplete. Request a new one.</Alert>
-        <Link to="/forgot-password" className="text-sm font-medium text-brand hover:text-accent">
+        <Link to="/forgot-password" className="text-sm font-medium text-brand hover:text-brand-600 hover:underline">
           Request a new link
         </Link>
       </div>

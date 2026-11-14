@@ -217,7 +217,7 @@ describe('AdminCareerPage', () => {
     mockAdmin()
     server.use(http.get('/api/admin/career/questions', () => HttpResponse.json({ title: 'Database unavailable.' }, { status: 500 })))
     renderAt('/admin/career', { as: 'Admin' })
-    expect(await screen.findByText('Database unavailable.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

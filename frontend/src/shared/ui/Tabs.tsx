@@ -16,17 +16,22 @@ interface Props<T extends string> {
 }
 
 /**
- * Segmented tabs (catalog Major / Elective, schedule day tabs). Arrow keys move between tabs, as screen-reader users
- * expect from role="tablist". Scrolls sideways on narrow screens instead of wrapping.
+ * Segmented tabs (catalog Major / Elective, schedule day tabs). Arrow keys (and Home / End) move between tabs, as
+ * screen-reader users expect from role="tablist". Scrolls sideways on narrow screens instead of wrapping.
  */
 export function Tabs<T extends string>({ label, items, value, onChange }: Props<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([])
 
   const onKeyDown = (e: KeyboardEvent, index: number) => {
-    const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-    if (!step) return
+    const last = items.length - 1
+    const next =
+      e.key === 'ArrowRight' ? (index + 1) % items.length
+      : e.key === 'ArrowLeft' ? (index + last) % items.length
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? last
+      : -1
+    if (next < 0) return
     e.preventDefault()
-    const next = (index + step + items.length) % items.length
     onChange(items[next]!.value)
     refs.current[next]?.focus()
   }

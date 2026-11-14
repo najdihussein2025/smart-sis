@@ -118,9 +118,9 @@ export function ScoreSheet({ roster, onSaved }: Props) {
                         disabled={locked}
                         placeholder="Not graded"
                         className={cn(
-                          'h-10 w-28 rounded-lg border bg-surface px-3 text-[15px] tabular-nums text-ink placeholder:text-muted/70',
+                          'h-10 w-28 rounded-lg border bg-surface px-3 text-[15px] tabular-nums text-ink placeholder:text-muted',
                           'focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:bg-canvas disabled:text-muted',
-                          error ? 'border-danger' : 'border-line focus:border-brand',
+                          error ? 'border-danger' : 'border-line-strong focus:border-brand',
                         )}
                         {...register(`scores.${i}.score`)}
                       />

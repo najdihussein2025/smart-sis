@@ -135,7 +135,7 @@ describe('AssistantPage', () => {
     mockChat()
     server.use(http.get('/api/chat/conversations', () => HttpResponse.json({ title: 'Could not load.' }, { status: 500 })))
     renderAt('/student/assistant', { as: 'Student' })
-    expect(await screen.findByText('Could not load.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 

@@ -120,7 +120,7 @@ describe('AdminSupportPage — inbox', () => {
       }),
     )
     const { user } = renderAt('/admin/support', { as: 'Admin' })
-    expect(await screen.findByText('Something went wrong.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('link', { name: 'Cannot add CSC 310' })).toBeInTheDocument()
   })
@@ -218,7 +218,7 @@ describe('AdminSupportPage — categories', () => {
     server.use(http.get('/api/admin/support/categories', () => HttpResponse.json({ title: 'Could not load.' }, { status: 500 })))
     const { user } = renderAt('/admin/support', { as: 'Admin' })
     await user.click(await screen.findByRole('tab', { name: 'Categories' }))
-    expect(await screen.findByText('Could not load.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

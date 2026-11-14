@@ -96,7 +96,7 @@ export function KnowledgePage() {
                 aria-invalid={!!formState.errors.file}
                 aria-describedby={formState.errors.file ? 'knowledge-file-error' : undefined}
                 {...register('file')}
-                className="block w-full rounded-lg border border-line bg-surface text-sm text-ink file:mr-3 file:h-11 file:border-0 file:bg-brand-50 file:px-3 file:text-ink"
+                className="block w-full rounded-lg border border-line-strong bg-surface text-sm text-ink file:mr-3 file:h-11 file:border-0 file:bg-brand-50 file:px-3 file:text-ink"
               />
               {formState.errors.file && (
                 <p id="knowledge-file-error" className="text-[13px] text-danger">

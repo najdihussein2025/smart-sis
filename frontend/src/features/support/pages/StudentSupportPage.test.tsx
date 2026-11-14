@@ -139,7 +139,7 @@ describe('StudentSupportPage', () => {
       }),
     )
     const { user } = renderAt('/student/support', { as: 'Student' })
-    expect(await screen.findByText('Something went wrong.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('link', { name: 'Cannot add CSC 310' })).toBeInTheDocument()
   })

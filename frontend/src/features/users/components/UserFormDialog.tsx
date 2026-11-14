@@ -132,7 +132,7 @@ export function UserFormDialog({ open, userId, onClose, onSaved }: Props) {
                       <label
                         key={r}
                         className={cn(
-                          'cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40',
+                          'cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus',
                           field.value === r ? 'bg-brand text-white' : 'text-muted hover:text-ink',
                         )}
                       >

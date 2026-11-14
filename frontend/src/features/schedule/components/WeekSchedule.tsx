@@ -31,7 +31,7 @@ export function WeekSchedule({ items, showInstructor = false }: Props) {
         <span className="inline-flex items-center gap-1.5">
           {shortDays[Number(d)]}
           {n > 0 && (
-            <span className="rounded-full bg-accent-soft px-1.5 text-xs text-accent" aria-hidden>
+            <span className="rounded-full bg-accent-soft px-1.5 text-xs text-accent-ink" aria-hidden>
               {n}
             </span>
           )}

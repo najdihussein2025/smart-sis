@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 
-/* Design tokens. Components use these names (bg-surface, text-ink, bg-brand…), never raw hex. */
+/*
+ * Design tokens. Components use these names (bg-surface, text-ink, bg-brand…), never raw hex.
+ * Contrast (WCAG 2.1 AA, measured in docs/usability.md): every text pair is >= 4.5:1, UI edges and focus >= 3:1.
+ */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
@@ -8,18 +11,21 @@
   --color-brand: #14213d;
   --color-brand-600: #1f3160;
   --color-brand-50: #eef1f8;
-  --color-accent: #c8963e;
+  --color-accent: #c8963e; /* decoration and text on the dark brand surfaces only (6.0:1 on brand) */
+  --color-accent-ink: #8a6220; /* accent-coloured text on light surfaces: 5.0:1 on canvas, 4.7:1 on accent-soft */
   --color-accent-soft: #f6ecda;
+  --color-focus: #b08332; /* focus outline: 3.1:1 on canvas, 3.4:1 on surface, 4.7:1 on brand (WCAG 1.4.11) */
 
   --color-canvas: #f6f5f2;
   --color-surface: #ffffff;
   --color-ink: #1b1f2a;
   --color-muted: #646b7a;
-  --color-line: #e4e2dc;
+  --color-line: #e4e2dc; /* dividers and card edges (decorative) */
+  --color-line-strong: #8f8a7f; /* edges of form controls: 3.4:1 on surface, 3.2:1 on canvas (WCAG 1.4.11) */
 
-  --color-success: #2f7d4f;
+  --color-success: #276b43; /* 5.6:1 on success-soft (was #2f7d4f, 4.4:1) */
   --color-success-soft: #e5f2ea;
-  --color-warning: #b86e12;
+  --color-warning: #9a5b0c; /* 4.8:1 on warning-soft (was #b86e12, 3.5:1) */
   --color-warning-soft: #fbefdc;
   --color-danger: #b3362f;
   --color-danger-soft: #f9e5e3;
@@ -36,7 +42,7 @@
     @apply bg-canvas text-ink font-sans;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-accent;
+    @apply outline-2 outline-offset-2 outline-focus;
   }
 }
 
@@ -48,6 +54,6 @@
   --rdp-day-width: 38px;
   --rdp-day_button-height: 36px;
   --rdp-day_button-width: 36px;
-  --rdp-today-color: var(--color-accent);
+  --rdp-today-color: var(--color-accent-ink);
   font-size: 14px;
 }

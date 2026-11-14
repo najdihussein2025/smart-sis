@@ -158,7 +158,7 @@ describe('CoursesPage', () => {
     )
     const { user } = renderAt('/admin/courses', { as: 'Admin' })
 
-    expect(await screen.findByText('Something went wrong.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('rowheader', { name: 'CSC 101' })).toBeInTheDocument()
   })

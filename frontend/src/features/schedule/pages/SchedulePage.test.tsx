@@ -109,7 +109,7 @@ describe('SchedulePage', () => {
     )
     const { user } = renderAt('/student/schedule', { as: 'Student' })
 
-    expect(await screen.findByText('Could not load your schedule.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('list', { name: 'Classes on Wednesday' })).toBeInTheDocument()

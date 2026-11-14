@@ -96,7 +96,7 @@ describe('AnnouncementsPage', () => {
     )
     const { user } = renderAt('/student/announcements', { as: 'Student' })
 
-    expect(await screen.findByText('The feed is unavailable.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('article', { name: 'Welcome to the new Smart SIS' })).toBeInTheDocument()
   })

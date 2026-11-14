@@ -8,6 +8,7 @@ import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { TextField } from '@/shared/ui/TextField'
 import { useForgotPassword } from '../hooks'
+import { useDocumentTitle } from '@/shared/ui/PageHeader'
 
 const schema = z.object({
   universityId: z.string().trim().min(1, 'Enter your University ID.').regex(/^\d+$/, 'University ID contains numbers only.'),
@@ -15,6 +16,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export function ForgotPasswordPage() {
+  useDocumentTitle('Forgot password')
   const forgot = useForgotPassword()
   const { register, handleSubmit, formState } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -28,7 +30,7 @@ export function ForgotPasswordPage() {
         <p className="mt-2 text-muted">
           If that University ID has an account, we sent a link to reset the password. The link works for 30 minutes.
         </p>
-        <Link to="/login" className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-accent">
+        <Link to="/login" className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-brand-600 hover:underline">
           <ArrowLeft className="size-4" aria-hidden /> Back to sign in
         </Link>
       </div>

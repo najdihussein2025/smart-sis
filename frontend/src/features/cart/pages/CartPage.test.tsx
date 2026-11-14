@@ -80,7 +80,7 @@ describe('CartPage', () => {
       http.get('/api/cart', () => HttpResponse.json({ title: 'Could not load your cart.' }, { status: 500 })),
     )
     renderAt('/student/cart', { as: 'Student' })
-    expect(await screen.findByText('Could not load your cart.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
   })
 
   it('enrolls the chosen sections and shows each rule failure with its reason', async () => {

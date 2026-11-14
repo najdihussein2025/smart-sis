@@ -90,7 +90,7 @@ describe('StudentFinancePage', () => {
     )
     const { user } = renderAt('/student/finance', { as: 'Student' })
 
-    expect(await screen.findByText('Server is down.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('heading', { name: 'CSC 210 lab fee' })).toBeInTheDocument()

@@ -63,7 +63,7 @@ describe('TeachingSchedulePage', () => {
   it('shows the error with a retry button', async () => {
     mockTeaching('error')
     renderAt('/instructor/schedule', { as: 'Instructor' })
-    expect(await screen.findByText('Could not load your schedule.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

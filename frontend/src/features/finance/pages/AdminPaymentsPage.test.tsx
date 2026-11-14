@@ -241,7 +241,7 @@ describe('AdminPaymentsPage', () => {
     mock()
     server.use(http.get('/api/admin/finance/charges', () => HttpResponse.json({ title: 'Server is down.' }, { status: 500 })))
     renderAt('/admin/payments', { as: 'Admin' })
-    expect(await screen.findByText('Server is down.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

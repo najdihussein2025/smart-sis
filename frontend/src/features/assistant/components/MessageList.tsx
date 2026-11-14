@@ -23,7 +23,7 @@ export function MessageList({ messages, thinking }: { messages: DisplayMessage[]
           <span
             className={cn(
               'grid size-8 shrink-0 place-items-center rounded-full',
-              m.role === 'User' ? 'bg-brand text-white' : 'bg-accent-soft text-accent',
+              m.role === 'User' ? 'bg-brand text-white' : 'bg-accent-soft text-ink',
             )}
           >
             {m.role === 'User' ? <UserRound className="size-4" aria-hidden /> : <Bot className="size-4" aria-hidden />}
@@ -41,7 +41,7 @@ export function MessageList({ messages, thinking }: { messages: DisplayMessage[]
       ))}
       {thinking && (
         <div className="flex items-center gap-3 text-sm text-muted">
-          <span className="grid size-8 place-items-center rounded-full bg-accent-soft text-accent">
+          <span className="grid size-8 place-items-center rounded-full bg-accent-soft text-accent-ink">
             <Bot className="size-4" aria-hidden />
           </span>
           <Spinner className="size-4" />

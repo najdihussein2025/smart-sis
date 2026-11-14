@@ -14,7 +14,8 @@ interface Props {
 export function Pagination({ page, totalPages, totalCount, noun, onPage }: Props) {
   return (
     <nav aria-label="Pages" className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm text-muted">
-      <span>
+      {/* Polite live region: after a search or filter, screen readers hear the new count. */}
+      <span role="status">
         {totalCount} {totalCount === 1 ? noun : `${noun}s`}
         {totalPages > 1 && ` · page ${page} of ${totalPages}`}
       </span>

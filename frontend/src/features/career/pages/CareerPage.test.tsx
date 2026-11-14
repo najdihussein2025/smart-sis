@@ -203,7 +203,7 @@ describe('CareerPage', () => {
   it('shows the error state with a retry button', async () => {
     server.use(http.get('/api/career/assessments', () => HttpResponse.json({ title: 'Database unavailable.' }, { status: 500 })))
     renderAt('/student/career', { as: 'Student' })
-    expect(await screen.findByText('Database unavailable.')).toBeInTheDocument()
+    expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 

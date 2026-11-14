@@ -55,7 +55,7 @@ export function Composer({ placeholder, disabled, onSend }: Props) {
             setError(null)
           }}
           onKeyDown={onKeyDown}
-          className="block max-h-40 min-h-11 w-full resize-y rounded-lg border border-line bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="block max-h-40 min-h-11 w-full resize-y rounded-lg border border-line-strong bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-accent/40"
         />
         <Button type="submit" disabled={disabled} aria-label="Send" className="h-11 shrink-0 px-3.5">
           <SendHorizontal className="size-4" aria-hidden />

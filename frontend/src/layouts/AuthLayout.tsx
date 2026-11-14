@@ -23,7 +23,7 @@ export function AuthLayout() {
             Students, instructors and administration share one system, with an assistant that knows your academic record.
           </p>
         </div>
-        <p className="relative text-sm text-white/50">© {new Date().getFullYear()} Smart SIS</p>
+        <p className="relative text-sm text-white/70">© {new Date().getFullYear()} Smart SIS</p>
       </aside>
 
       <main className="flex items-center justify-center px-4 py-12 sm:px-8">

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCheck, Lock } from 'lucide-react'
+import { Check, CheckCheck, Lock } from 'lucide-react'
 import { errorMessage } from '@/shared/api/problem'
 import { cn } from '@/shared/lib/cn'
 import { isoToDmy } from '@/shared/lib/dates'
@@ -147,11 +147,11 @@ function StudentRow({ student, limit, status, readOnly, onChange }: RowProps) {
             <label
               key={option}
               className={cn(
-                'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40',
+                'inline-flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus',
                 status === option
                   ? option === 'Present'
-                    ? 'bg-success-soft text-success'
-                    : 'bg-danger-soft text-danger'
+                    ? 'bg-success-soft text-success shadow-sm'
+                    : 'bg-danger-soft text-danger shadow-sm'
                   : 'text-muted hover:text-ink',
               )}
             >
@@ -163,6 +163,8 @@ function StudentRow({ student, limit, status, readOnly, onChange }: RowProps) {
                 checked={status === option}
                 onChange={() => onChange(option)}
               />
+              {/* The tick shows the choice without relying on colour. */}
+              {status === option && <Check className="size-3.5" aria-hidden />}
               {option}
             </label>
           ))}

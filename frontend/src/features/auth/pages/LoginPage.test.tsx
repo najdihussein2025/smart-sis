@@ -87,7 +87,7 @@ describe('LoginPage', () => {
 
     await fill(user, '1001', 'Pass@1234')
 
-    expect(await screen.findByText('Cannot reach the server. Check your connection.')).toBeInTheDocument()
+    expect(await screen.findByText('Cannot reach the server. Check your connection and try again.')).toBeInTheDocument()
   })
 
   it('skips the form when already signed in', async () => {

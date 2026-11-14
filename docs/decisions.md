@@ -386,3 +386,21 @@ Traits, question bank, careers with roadmaps and course-trait tags are tabs of o
 - Admin: active = `IsActive` users (deactivated and soft-deleted excluded); "open support requests" = Open + InProgress
   ("new" = Open); "unpaid charges" = Pending + Partial, total = Σ amount − Σ payments of those charges.
 - Every card links to the page behind the number; the unread-notifications card has no link (the bell is the place).
+
+### Consistent states, errors and accessibility (T77)
+- **Friendly errors** live in one place, `errorMessage()` (`shared/api/problem.ts`): no response → connection (or timeout)
+  sentence; any 5xx → "Something went wrong on our side…" (the 500 `detail` is never shown); 4xx → the API's
+  ProblemDetails title (written for people), except framework titles ("One or more validation errors occurred.") and
+  empty bodies, which get a sentence for the status. Tests that mocked 500s with custom titles now expect the 5xx sentence.
+- **Contrast** (WCAG 2.1 AA): `success` and `warning` were darkened so badge text passes on their soft backgrounds;
+  `accent` is kept for decoration and text on the dark brand surfaces, and a new `accent-ink` is used for gold text on light
+  surfaces (eyebrows, empty-state icons, calendar "today"). New `line-strong` for form-control edges (3:1) and `focus` for
+  the focus outline (3:1 on light, 4.7:1 on brand). Placeholders use `text-muted` (no opacity). Ratios in docs/usability.md.
+- **Keyboard**: `useFocusTrap` (`shared/lib`) gives `Dialog` and the mobile menu focus-in, Tab trapping, Escape and focus
+  return; tabs also take Home / End; the shell has a "Skip to main content" link and `<main id="main">`.
+- **Titles**: `PageHeader` sets `document.title` ("Grades · Smart SIS"); dashboards use "Dashboard"; auth pages and 404
+  set their own.
+- **Live regions**: `TableSkeleton`, the dashboard skeleton and the `Pagination` count are `role="status"`; alerts were
+  already `alert` / `status`.
+- Colour is never the only signal: the attendance Present / Absent choice now shows a tick on the chosen option, and
+  dashboard warning tones always come with words in the hint.
