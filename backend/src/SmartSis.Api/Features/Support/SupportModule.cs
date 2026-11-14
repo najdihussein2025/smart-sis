@@ -11,6 +11,8 @@ public static class SupportModule
         services.AddScoped<ISupportRepository, SupportRepository>();
         services.AddScoped<SupportNotifier>();
         services.AddScoped<ISupportService, SupportService>();
+        services.AddScoped<IAdminSupportService, AdminSupportService>();
+        services.AddScoped<ISupportCategoryService, SupportCategoryService>();
         return services;
     }
 }
