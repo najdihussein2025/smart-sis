@@ -14,6 +14,8 @@ import { UsersPage } from '@/features/users/pages/UsersPage'
 import { CatalogPage } from '@/features/catalog/pages/CatalogPage'
 import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
+import { StudentSupportPage } from '@/features/support/pages/StudentSupportPage'
+import { StudentSupportRequestPage } from '@/features/support/pages/StudentSupportRequestPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -45,12 +47,13 @@ export const routes: RouteObject[] = [
       { path: 'courses', element: <CatalogPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'cart', element: <CartPage /> },
+      { path: 'support', element: <StudentSupportPage /> },
+      { path: 'support/:id', element: <StudentSupportRequestPage /> },
       ...soon([
         ['schedule', 'Schedule', 3],
         ['grades', 'Grades', 5],
         ['attendance', 'Attendance', 5],
         ['finance', 'Financial account', 3],
-        ['support', 'Support', 6],
         ['assistant', 'Assistant', 7],
       ]),
     ],
