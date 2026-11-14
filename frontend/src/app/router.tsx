@@ -14,6 +14,7 @@ import { UsersPage } from '@/features/users/pages/UsersPage'
 import { CatalogPage } from '@/features/catalog/pages/CatalogPage'
 import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
+import { InstructorAttendancePage } from '@/features/attendance/pages/InstructorAttendancePage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -65,9 +66,9 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <InstructorDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'attendance', element: <InstructorAttendancePage /> },
       ...soon([
         ['schedule', 'Teaching schedule', 5],
-        ['attendance', 'Attendance', 5],
         ['grading', 'Grading', 5],
         ['announcements', 'Announcements', 6],
       ]),
