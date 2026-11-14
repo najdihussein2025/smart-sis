@@ -109,6 +109,7 @@ public sealed class RoleAccessTests(SisApiFactory factory) : IClassFixture<SisAp
         { "POST", "/api/enrollment/enroll" },
         { "POST", "/api/enrollment/swap" },
         { "POST", "/api/enrollment/drop" },
+        { "GET", "/api/schedule/my" },
     };
 
     [Theory]
@@ -133,6 +134,39 @@ public sealed class RoleAccessTests(SisApiFactory factory) : IClassFixture<SisAp
     [Trait("SR", "SR-22")]
     [MemberData(nameof(StudentEndpoints))]
     public async Task StudentEndpoint_AdminToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.AdminId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
+
+    /// <summary>Every instructor-only route. Add a row for each new one.</summary>
+    public static TheoryData<string, string> InstructorEndpoints => new()
+    {
+        { "GET", "/api/schedule/teaching" },
+    };
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_NoToken_Returns401(string method, string url)
+    {
+        var res = await factory.CreateClient().SendAsync(Request(method, url));
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_StudentToken_Returns403(string method, string url)
+    {
+        var client = await factory.ClientForAsync(SisApiFactory.StudentId);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
+    }
+
+    [Theory]
+    [Trait("SR", "SR-22")]
+    [MemberData(nameof(InstructorEndpoints))]
+    public async Task InstructorEndpoint_AdminToken_Returns403(string method, string url)
     {
         var client = await factory.ClientForAsync(SisApiFactory.AdminId);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(Request(method, url))).StatusCode);
