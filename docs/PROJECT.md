@@ -61,7 +61,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 | Financial account | Pending / Completed tabs, outstanding balance, due dates, partial payments |
 | Support requests | Submit an issue (registration, grade dispute, finance…), follow its status, reply in a thread |
 | AI chatbot | Personal questions (my grades, schedule, deadlines) and concept explanations; saved conversations |
-| Career module | **Parked**, see §9 |
+| Career module | Assessment quiz (once per term), top 3 careers with % match and an AI explanation, roadmaps with progress and "Add to cart", see §9 |
 
 ### Instructor
 | Feature | Details |
@@ -85,6 +85,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 | Announcements | Post to everyone, students, instructors, or a major |
 | Support inbox | Handle all student support requests |
 | Knowledge base | Upload university policies / FAQs used by the chatbot |
+| Career | Traits, question bank (deactivate once answered), careers with trait weights and roadmap steps, course-trait tags |
 
 ---
 
@@ -177,7 +178,7 @@ Each term has two windows:
 
 ## 5. Database
 
-SQL Server, created from EF Core migrations. **38 tables in 9 modules.** Tables are PascalCase plural (`Enrollments`), columns PascalCase (`StudentId`). Every table also has `Id` (int identity), `CreatedAt`, `UpdatedAt` (`datetime2`). Tables with a natural key (`Students`, `Instructors`, `MajorCourses`, `CoursePrerequisites`, `TermResults`) use that key instead of `Id`. Enums are stored as `nvarchar` so data stays readable in SSMS. Money and GPA use `decimal(10,2)`.
+SQL Server, created from EF Core migrations. **49 tables in 10 modules.** Tables are PascalCase plural (`Enrollments`), columns PascalCase (`StudentId`). Every table also has `Id` (int identity), `CreatedAt`, `UpdatedAt` (`datetime2`). Tables with a natural key (`Students`, `Instructors`, `MajorCourses`, `CoursePrerequisites`, `TermResults`) use that key instead of `Id`. Enums are stored as `nvarchar` so data stays readable in SSMS. Money and GPA use `decimal(10,2)`.
 
 ### 5.1 Users and auth
 | Table | Key columns |
@@ -270,7 +271,25 @@ Emails are queued in `EmailOutbox` and sent by a background job, so a mail failu
 keeps its mode and course in a hidden first message with `Role = Tool` (no extra columns). Uploaded documents are UTF-8
 `.txt` / `.md`; .NET stores the file and sends its text to Python `/ingest`, which writes only `KnowledgeChunks`.
 
-### 5.10 Where each rule is enforced
+### 5.10 Career (PB-16, PB-17, PB-20)
+| Table | Key columns |
+|---|---|
+| CareerTraits | Name (unique), Description |
+| CareerPaths | Name (unique), Description, IsActive |
+| CareerPathTraits | CareerPathId, TraitId (unique pair), Weight (1–10) |
+| CareerRoadmapSteps | CareerPathId, StepOrder (unique pair), Title, Description, CourseId (optional) |
+| CourseTraits | CourseId, TraitId (unique pair) |
+| CareerQuestions | Text, IsActive |
+| CareerQuestionOptions | QuestionId, OptionOrder, Text |
+| CareerOptionTraitPoints | OptionId, TraitId (unique pair), Points (1–5) |
+| CareerAssessments | StudentId, TermId (unique pair: one per term), SubmittedAt |
+| CareerAssessmentAnswers | AssessmentId, QuestionId (unique pair), OptionId |
+| CareerAssessmentTraitScores | AssessmentId, TraitId (unique pair), Points, MaxPoints, Score (0–100) |
+
+The module links only to `Students`, `Courses` and `Terms`. Trait scores are stored at submit so later edits to the
+question bank don't change past results.
+
+### 5.11 Where each rule is enforced
 | Rule | Enforced by |
 |---|---|
 | Enrollment / add-drop windows | Backend, using the dates on `Terms` |
@@ -287,6 +306,8 @@ keeps its mode and course in a hidden first message with `Role = Tool` (no extra
 | Charge status follows payments | Backend after each payment |
 | No hard deletes | `DeletedAt` + `IsActive`, global query filter, FK RESTRICT |
 | Instructor announcements own sections only | Backend role and ownership check |
+| One career assessment per student per term | Unique index (StudentId, TermId) on `CareerAssessments` + backend check |
+| Each quiz question answered once, with an option of that question | `AssessmentScoring` + unique index (AssessmentId, QuestionId) |
 
 ---
 
@@ -312,7 +333,7 @@ Background jobs inside the API: email outbox, absence alerts, GPA rebuild
 ### 6.3 Why this architecture (for the review)
 - **Why not microservices?** One team, one database, one deployment. Microservices would add network calls, distributed transactions and DevOps overhead without solving a problem we have. The AI part is split out because it uses a different language.
 - **Why not full DDD?** About 70% of the system is CRUD (users, lookups, courses, announcements). Full DDD there is pure overhead. We apply it where the business rules live, so those rules are isolated and unit-tested.
-- **Where are the rules?** In each feature's `Rules/` folder as pure classes with no database access: `EnrollmentPolicy`, `SwapPolicy`, `GradeCalculator`, `GpaCalculator`, `AbsencePolicy`. They map directly to the test cases.
+- **Where are the rules?** In each feature's `Rules/` folder as pure classes with no database access: `EnrollmentPolicy`, `SwapPolicy`, `GradeCalculator`, `GpaCalculator`, `AbsencePolicy`, `AssessmentScoring`, `CareerScoring`, `RoadmapProgress`. They map directly to the test cases.
 - **Security:** JWT, role policies on every endpoint, ownership checks in services (an instructor can only grade sections they teach), and the AI service uses the student's own token.
 - **Data integrity:** soft delete, restrictive foreign keys, unique indexes for duplicates, and transactions with row locks for enrollment.
 
@@ -390,7 +411,7 @@ Features/Enrollments/
 └── Data/EnrollmentConfiguration.cs, EnrollmentActionConfiguration.cs
 ```
 
-Features and the entities each one owns (38 total):
+Features and the entities each one owns (49 total):
 
 | Feature | Owns |
 |---|---|
@@ -411,6 +432,7 @@ Features and the entities each one owns (38 total):
 | Support | SupportCategory, SupportRequest, SupportMessage |
 | Dashboard | (read-only, none) |
 | Chat | ChatConversation, ChatMessage, KnowledgeDocument, KnowledgeChunk |
+| Career | CareerTrait, CareerPath, CareerPathTrait, CareerRoadmapStep, CourseTrait, CareerQuestion, CareerQuestionOption, CareerOptionTraitPoint, CareerAssessment, CareerAssessmentAnswer, CareerAssessmentTraitScore |
 
 Shared plumbing (no business logic):
 ```
@@ -450,7 +472,7 @@ ai-service/app/
 ├── chat/           agent.py (LLM + tools), tools.py (get_my_grades, get_my_schedule, get_deadlines), prompts.py
 ├── rag/            chunker.py, embeddings.py, search.py
 ├── clients/        sis_api.py (calls the .NET API with the student's JWT)
-└── career/         parked
+└── career/         router.py (POST /career/explain), explainer.py (LLM + fallback), schemas.py
 ```
 
 ---
@@ -472,14 +494,19 @@ The detailed, enforceable version of these lives in `docs/rules/`.
 
 ---
 
-## 9. Parked: career recommendation module
+## 9. Career recommendation module (PB-16, PB-17, PB-20)
 
-Agreed to design later. Proposed direction for when we pick it up:
-- **Admin sets up:** traits/skills, career paths with a weight per trait, roadmap steps, linked courses, course-to-trait tags, and a question bank where each answer adds points to traits.
-- **Student flow:** take a 20–30 question quiz (retake per term) → rule-based scoring combines quiz traits (~70%) and grades in trait-tagged courses (~30%) → top 3 careers with % match → the LLM writes the explanation and personalises the roadmap → suggested courses with "Add to cart".
-- It will add its own tables and link only to `Students` and `Courses`.
-
----
+Built in phase 7 as `Features/Career` (tables in §5.10). Decisions and edge cases: `docs/decisions.md`.
+- **Admin sets up** (`/admin/career`): traits, career paths with a weight per trait (1–10), ordered roadmap steps
+  (optionally linked to a course), course-to-trait tags, and a question bank where each answer option adds 1–5 points to
+  traits. Answered questions are deactivated, never deleted.
+- **Student flow** (`/student/career`): take the 20–30 question quiz (**once per term**; retake next term) → trait scores
+  → `CareerScoring` combines quiz traits (**70%**) and grades in trait-tagged courses (**30%**; the quiz alone for a trait
+  with no graded course) → top 3 careers with % match → the LLM (AI service `POST /career/explain`) writes the explanation,
+  with a built-in fallback so the page never fails → suggested roadmap courses and each career's roadmap
+  (Done / In progress / Next / Later / Milestone) with "Add to cart".
+- It has its own tables and links only to `Students`, `Courses` and `Terms`. The AI service gets no personal data
+  (no name, id or email), only careers, scores and course names.
 
 ## 10. Build order
 
@@ -498,7 +525,7 @@ The mobile test cases (TC_01–TC_114) map to phases 1–6 and are reused as acc
 ## 11. Open items
 
 - [ ] Confirm the SQL Server version (decides how embeddings are stored).
-- [ ] Career module design (§9).
-- [ ] Refresh tokens: login currently issues one access token (8 h). Decide whether we need refresh tokens (would add a `RefreshTokens` table, 39th).
+- [x] Career module design (§9): built, decisions in `docs/decisions.md` (PB-16/PB-17/PB-20).
+- [ ] Refresh tokens: login currently issues one access token (8 h). Decide whether we need refresh tokens (would add a `RefreshTokens` table, 50th).
 - [ ] Fix the BRD: SR-1 is listed twice, SR-8 and SR-12 are missing, the §5.3 table references shifted SR numbers, and the out-of-scope row cites SR-22 (which is the security requirement) for "no mobile app".
 - [ ] BRD open issues still pending with stakeholders: OI-2 (official authentication service), OI-4 (response-time limits), OI-6 (supported browsers). OI-1, OI-3, OI-5 and OI-7 are answered by the decisions in §4 and §6 and can be closed in the next BRD version.

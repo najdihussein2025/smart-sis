@@ -2,6 +2,7 @@ using SmartSis.Api.Features.Announcements;
 using SmartSis.Api.Features.Attendance;
 using SmartSis.Api.Features.Auth;
 using SmartSis.Api.Features.Cart;
+using SmartSis.Api.Features.Career;
 using SmartSis.Api.Features.Chat;
 using SmartSis.Api.Features.Courses;
 using SmartSis.Api.Features.Dashboard;
@@ -38,5 +39,6 @@ public static class FeatureRegistration
         .AddNotificationsFeature()
         .AddSupportFeature()
         .AddDashboardFeature()
-        .AddChatFeature();
+        .AddChatFeature()
+        .AddCareerFeature();
 }

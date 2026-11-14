@@ -1,6 +1,6 @@
 import {
   BookOpen, CalendarDays, ClipboardCheck, CreditCard, GraduationCap, LayoutDashboard, LifeBuoy, Megaphone,
-  MessageSquareText, ShoppingCart, Users, Building2, CalendarRange, Layers, ListChecks, FileStack, Inbox,
+  MessageSquareText, ShoppingCart, Users, Building2, CalendarRange, Layers, ListChecks, FileStack, Inbox, Compass,
 } from 'lucide-react'
 import { RoleShell, type NavItem } from './RoleShell'
 
@@ -15,6 +15,7 @@ const studentNav: NavItem[] = [
   { to: '/student/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/student/support', label: 'Support', icon: LifeBuoy },
   { to: '/student/assistant', label: 'Assistant', icon: MessageSquareText },
+  { to: '/student/career', label: 'Career', icon: Compass },
 ]
 
 const instructorNav: NavItem[] = [
@@ -37,6 +38,7 @@ const adminNav: NavItem[] = [
   { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/support', label: 'Support inbox', icon: Inbox },
   { to: '/admin/knowledge', label: 'Knowledge base', icon: FileStack },
+  { to: '/admin/career', label: 'Career', icon: Compass },
 ]
 
 export const StudentLayout = () => <RoleShell areaLabel="Student" nav={studentNav} />

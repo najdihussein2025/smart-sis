@@ -7,6 +7,7 @@ import logging
 
 from fastapi import FastAPI
 
+from app.career.router import router as career_router
 from app.chat.router import router as chat_router
 from app.rag.router import router as ingest_router
 
@@ -22,3 +23,4 @@ def health() -> dict[str, str]:
 
 app.include_router(chat_router)
 app.include_router(ingest_router)
+app.include_router(career_router)

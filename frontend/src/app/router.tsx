@@ -27,6 +27,8 @@ import { StudentAttendancePage } from '@/features/attendance/pages/StudentAttend
 import { AnnouncementsPage } from '@/features/announcements/pages/AnnouncementsPage'
 import { AssistantPage } from '@/features/assistant/pages/AssistantPage'
 import { KnowledgePage } from '@/features/knowledge/pages/KnowledgePage'
+import { CareerPage } from '@/features/career/pages/CareerPage'
+import { AdminCareerPage } from '@/features/career/pages/AdminCareerPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
 import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
@@ -69,6 +71,7 @@ export const routes: RouteObject[] = [
       { path: 'grades', element: <StudentGradesPage /> },
       { path: 'announcements', element: <AnnouncementsPage /> },
       { path: 'assistant', element: <AssistantPage /> },
+      { path: 'career', element: <CareerPage /> },
     ],
   },
   {
@@ -107,6 +110,7 @@ export const routes: RouteObject[] = [
       { path: 'grade-components', element: <GradeComponentsPage /> },
       { path: 'announcements', element: <AnnouncementsPage /> },
       { path: 'knowledge', element: <KnowledgePage /> },
+      { path: 'career', element: <AdminCareerPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
       ]),
