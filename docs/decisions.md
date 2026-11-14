@@ -37,3 +37,16 @@ Dropping sets `Status = Dropped`, `CountsInGpa = false`. Re-enrolling later crea
 ### Frontend placement
 - The student catalog lives in `features/catalog` (the admin course pages stay in `features/courses`).
 - Enroll results, swap and drop live on the Cart page (one registration screen), using the `enrollment` feature's hooks.
+
+## PB-13/PB-14 Support
+
+### Student side (T50, T51)
+- Routes: `GET /api/support/categories`, `GET|POST /api/support/requests`, `GET /api/support/requests/{id}`,
+  `POST /api/support/requests/{id}/messages`. The student id always comes from the token.
+- Another student's request answers **404**, not 403, so request ids can't be probed.
+- The description is stored on the request; the thread (`SupportMessages`) holds the replies that follow it.
+- A **Closed** request takes no replies from anyone (409 `request_closed`): the student submits a new request.
+  A student reply on a **Resolved** request reopens it (Open, `ResolvedAt` cleared), since it means the problem isn't solved.
+- A student reply notifies the assigned admin in-app (no email); unassigned requests are seen in the inbox.
+- Lists are ordered by newest activity (latest reply, else submission time).
+- Demo data: `SupportDevSeed` (Order 400) adds four simulated requests, one per status, three for student 3001.

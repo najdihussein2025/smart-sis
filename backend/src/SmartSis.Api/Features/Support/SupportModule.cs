@@ -1,10 +1,16 @@
+using SmartSis.Api.Features.Support.Interfaces;
+using SmartSis.Api.Features.Support.Repositories;
+using SmartSis.Api.Features.Support.Services;
+
 namespace SmartSis.Api.Features.Support;
 
 public static class SupportModule
 {
     public static IServiceCollection AddSupportFeature(this IServiceCollection services)
     {
-        // TODO(phase-6): register ISupportService / ISupportRepository here.
+        services.AddScoped<ISupportRepository, SupportRepository>();
+        services.AddScoped<SupportNotifier>();
+        services.AddScoped<ISupportService, SupportService>();
         return services;
     }
 }
