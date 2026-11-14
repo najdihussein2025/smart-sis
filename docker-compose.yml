@@ -37,6 +37,8 @@ services:
       Email__Provider: Log
       AiService__BaseUrl: http://ai:8000
       AiService__ServiceKey: ${AI_SERVICE_KEY:-}
+      # Uploaded knowledge-base files (the image's /app is read-only for the non-root user).
+      KnowledgeBase__StoragePath: /home/app/knowledge
     ports:
       - "${API_PORT:-5080}:8080"
     depends_on:
@@ -60,10 +62,13 @@ services:
       SIS_API_BASE_URL: http://api:8080
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-}
+      # Only for KnowledgeChunks (write on /ingest, read on search). Same database as the API.
+      SQL_CONNECTION_STRING: "Server=db,1433;Database=SmartSis;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
     ports:
       - "${AI_PORT:-8000}:8000"
     depends_on:
       - api
+      - db
 
 volumes:
   sqldata:

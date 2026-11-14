@@ -4,20 +4,39 @@ from typing import Any
 
 import httpx
 
-from app.config import get_settings
+
+class SisApiError(Exception):
+    """The .NET API answered with an error or couldn't be reached (`status` is None then)."""
+
+    def __init__(self, status: int | None, message: str) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 class SisApiClient:
-    def __init__(self, student_token: str, timeout: float = 10.0) -> None:
+    """One client per chat request. The token only ever goes in the Authorization header; it is never logged."""
+
+    def __init__(
+        self,
+        student_token: str,
+        base_url: str,
+        timeout: float = 10.0,
+        transport: httpx.BaseTransport | None = None,
+    ) -> None:
         self._client = httpx.Client(
-            base_url=get_settings().sis_api_base_url,
+            base_url=base_url,
             headers={"Authorization": f"Bearer {student_token}"},
             timeout=timeout,
+            transport=transport,
         )
 
     def get(self, path: str, **params: Any) -> Any:
-        response = self._client.get(path, params=params or None)
-        response.raise_for_status()
+        try:
+            response = self._client.get(path, params=params or None)
+        except httpx.HTTPError as ex:
+            raise SisApiError(None, f"SIS API unreachable ({type(ex).__name__})") from ex
+        if response.status_code >= 400:
+            raise SisApiError(response.status_code, _problem_title(response))
         return response.json()
 
     def close(self) -> None:
@@ -28,3 +47,13 @@ class SisApiClient:
 
     def __exit__(self, *_: object) -> None:
         self.close()
+
+
+def _problem_title(response: httpx.Response) -> str:
+    try:
+        body = response.json()
+        if isinstance(body, dict) and isinstance(body.get("title"), str):
+            return body["title"]
+    except ValueError:
+        pass
+    return f"HTTP {response.status_code}"

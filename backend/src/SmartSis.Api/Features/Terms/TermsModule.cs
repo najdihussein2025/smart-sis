@@ -10,7 +10,7 @@ public static class TermsModule
     {
         services.AddScoped<ITermRepository, TermRepository>();
         services.AddScoped<ITermAdminService, TermAdminService>();
-        // TODO(phase-3): read-only term endpoints for students / instructors (separate controller).
+        services.AddScoped<ITermQueryService, TermQueryService>();
         return services;
     }
 }

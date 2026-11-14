@@ -265,6 +265,11 @@ Emails are queued in `EmailOutbox` and sent by a background job, so a mail failu
 
 **Embeddings on SQL Server:** if the server is SQL Server 2025, use the native `VECTOR` type. On older versions, store the embedding as `varbinary` and let the Python service do the similarity search. *(Open item: confirm the SQL Server version. The code currently uses `varbinary(max)`.)*
 
+**As built (phase 7, details in `docs/decisions.md` → PB-15/PB-19):** Docker runs SQL Server 2022, so embeddings are float32
+`varbinary(max)` from a deterministic hashed bag-of-words embedder and cosine search runs in Python. A tutor conversation
+keeps its mode and course in a hidden first message with `Role = Tool` (no extra columns). Uploaded documents are UTF-8
+`.txt` / `.md`; .NET stores the file and sends its text to Python `/ingest`, which writes only `KnowledgeChunks`.
+
 ### 5.10 Where each rule is enforced
 | Rule | Enforced by |
 |---|---|
