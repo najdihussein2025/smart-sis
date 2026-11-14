@@ -10,7 +10,8 @@ public static class CoursesModule
     {
         services.AddScoped<ICourseRepository, CourseRepository>();
         services.AddScoped<ICourseAdminService, CourseAdminService>();
-        // TODO(phase-3): read-only catalog endpoints for students (separate controller).
+        services.AddScoped<ICatalogRepository, CatalogRepository>();
+        services.AddScoped<ICatalogService, CatalogService>();
         return services;
     }
 }
