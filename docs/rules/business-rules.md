@@ -1,6 +1,6 @@
 # Business rules (must never be broken)
 
-Condensed from PROJECT.md §4 and §5.10. Each rule says **where** it lives. If code enforces a rule
+Condensed from PROJECT.md §4, §5.11 and §9. Each rule says **where** it lives. If code enforces a rule
 somewhere else, it's in the wrong place.
 
 ## Enrollment (feature: Enrollments, rules in `Rules/EnrollmentPolicy.cs`, `Rules/SwapPolicy.cs`)
@@ -51,6 +51,15 @@ The first failing check throws `BusinessRuleException` with a human message ("Sc
 | D1 | Users are never hard-deleted: `IsActive = false` + `DeletedAt`. The soft-delete interceptor converts deletes |
 | D2 | All foreign keys are `Restrict` (applied globally in `SisDbContext`). Never add `Cascade` |
 | D3 | Simulated data only in dev and tests (SR-23) |
+
+## Career (feature: Career, rules in `Rules/AssessmentScoring.cs`, `Rules/CareerScoring.cs`, `Rules/RoadmapProgress.cs`)
+| # | Rule |
+|---|---|
+| K1 | One assessment per student per term (unique index `CareerAssessments(StudentId, TermId)`); quiz = first 30 active questions by id, < 20 → 409 |
+| K2 | Every quiz question answered exactly once with one of its own options |
+| K3 | Match = 70% quiz + 30% grades in trait-tagged courses (quiz alone for a trait with no graded course), weighted by career; top 3 |
+| K4 | Answered questions are deactivated, never deleted; a chosen option can't be removed |
+| K5 | The AI service only writes the explanation, gets no personal data; a deterministic fallback is used when it can't answer |
 
 ## Communication
 | # | Rule |

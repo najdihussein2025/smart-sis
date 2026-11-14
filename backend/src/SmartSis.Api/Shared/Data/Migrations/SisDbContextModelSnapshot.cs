@@ -17,7 +17,7 @@ namespace SmartSis.Api.Shared.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -233,6 +233,389 @@ namespace SmartSis.Api.Shared.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PasswordResetTokens", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TermId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TermId");
+
+                    b.HasIndex("StudentId", "TermId")
+                        .IsUnique();
+
+                    b.ToTable("CareerAssessments", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessmentAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssessmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OptionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("AssessmentId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("CareerAssessmentAnswers", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessmentTraitScore", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssessmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaxPoints")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TraitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TraitId");
+
+                    b.HasIndex("AssessmentId", "TraitId")
+                        .IsUnique();
+
+                    b.ToTable("CareerAssessmentTraitScores", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CareerAssessmentTraitScores_Score", "[Score] BETWEEN 0 AND 100");
+                        });
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerOptionTraitPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TraitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TraitId");
+
+                    b.HasIndex("OptionId", "TraitId")
+                        .IsUnique();
+
+                    b.ToTable("CareerOptionTraitPoints", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CareerOptionTraitPoints_Points", "[Points] BETWEEN 1 AND 5");
+                        });
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerPath", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("CareerPaths", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerPathTrait", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CareerPathId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TraitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TraitId");
+
+                    b.HasIndex("CareerPathId", "TraitId")
+                        .IsUnique();
+
+                    b.ToTable("CareerPathTraits", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CareerPathTraits_Weight", "[Weight] BETWEEN 1 AND 10");
+                        });
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerQuestion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("CareerQuestions", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerQuestionOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OptionOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId", "OptionOrder");
+
+                    b.ToTable("CareerQuestionOptions", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerRoadmapStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CareerPathId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("CareerPathId", "StepOrder")
+                        .IsUnique();
+
+                    b.ToTable("CareerRoadmapSteps", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CareerRoadmapSteps_Order", "[StepOrder] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerTrait", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("CareerTraits", (string)null);
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CourseTrait", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TraitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TraitId");
+
+                    b.HasIndex("CourseId", "TraitId")
+                        .IsUnique();
+
+                    b.ToTable("CourseTraits", (string)null);
                 });
 
             modelBuilder.Entity("SmartSis.Api.Features.Cart.Models.Entities.CartItem", b =>
@@ -1805,6 +2188,157 @@ namespace SmartSis.Api.Shared.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessment", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Users.Models.Entities.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Terms.Models.Entities.Term", "Term")
+                        .WithMany()
+                        .HasForeignKey("TermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Term");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessmentAnswer", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerAssessment", "Assessment")
+                        .WithMany("Answers")
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerQuestionOption", "Option")
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerQuestion", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assessment");
+
+                    b.Navigation("Option");
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessmentTraitScore", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerAssessment", "Assessment")
+                        .WithMany("TraitScores")
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerTrait", "Trait")
+                        .WithMany()
+                        .HasForeignKey("TraitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assessment");
+
+                    b.Navigation("Trait");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerOptionTraitPoint", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerQuestionOption", "Option")
+                        .WithMany("TraitPoints")
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerTrait", "Trait")
+                        .WithMany()
+                        .HasForeignKey("TraitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Option");
+
+                    b.Navigation("Trait");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerPathTrait", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerPath", "CareerPath")
+                        .WithMany("Traits")
+                        .HasForeignKey("CareerPathId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerTrait", "Trait")
+                        .WithMany()
+                        .HasForeignKey("TraitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CareerPath");
+
+                    b.Navigation("Trait");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerQuestionOption", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerQuestion", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerRoadmapStep", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerPath", "CareerPath")
+                        .WithMany("Steps")
+                        .HasForeignKey("CareerPathId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Courses.Models.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CareerPath");
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CourseTrait", b =>
+                {
+                    b.HasOne("SmartSis.Api.Features.Courses.Models.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartSis.Api.Features.Career.Models.Entities.CareerTrait", "Trait")
+                        .WithMany()
+                        .HasForeignKey("TraitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Trait");
+                });
+
             modelBuilder.Entity("SmartSis.Api.Features.Cart.Models.Entities.CartItem", b =>
                 {
                     b.HasOne("SmartSis.Api.Features.Sections.Models.Entities.Section", "Section")
@@ -2278,6 +2812,30 @@ namespace SmartSis.Api.Shared.Data.Migrations
             modelBuilder.Entity("SmartSis.Api.Features.Attendance.Models.Entities.AttendanceSession", b =>
                 {
                     b.Navigation("Records");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerAssessment", b =>
+                {
+                    b.Navigation("Answers");
+
+                    b.Navigation("TraitScores");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerPath", b =>
+                {
+                    b.Navigation("Steps");
+
+                    b.Navigation("Traits");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerQuestion", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("SmartSis.Api.Features.Career.Models.Entities.CareerQuestionOption", b =>
+                {
+                    b.Navigation("TraitPoints");
                 });
 
             modelBuilder.Entity("SmartSis.Api.Features.Chat.Models.Entities.ChatConversation", b =>
