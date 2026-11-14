@@ -1,10 +1,15 @@
+using SmartSis.Api.Features.Grading.Interfaces;
+using SmartSis.Api.Features.Grading.Repositories;
+using SmartSis.Api.Features.Grading.Services;
+
 namespace SmartSis.Api.Features.Grading;
 
 public static class GradingModule
 {
     public static IServiceCollection AddGradingFeature(this IServiceCollection services)
     {
-        // TODO(phase-5): register IGradingService / IGradingRepository here.
+        services.AddScoped<IGradingRepository, GradingRepository>();
+        services.AddScoped<IGradeComponentService, GradeComponentService>();
         return services;
     }
 }
