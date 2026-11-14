@@ -50,7 +50,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 ### Student
 | Feature | Details |
 |---|---|
-| Dashboard | Name, ID, major, photo, current GPA, credits, quick links |
+| Dashboard | Name, ID, major; cards (each a link): cumulative GPA, credits this term vs cap, classes today, outstanding balance, attendance warnings, unread notifications (`GET /api/dashboard/student`) |
 | Schedule | Day tabs Mon–Sat; each class shows time, course, room, instructor. Empty-day state |
 | Course catalog | Major / Elective tabs → course details (code, name, credits, description, prerequisites) → sections with day, time, room, instructor, capacity |
 | Cart | Add a section; button shows "In Cart" or "Enrolled". Enroll several at once; remove items |
@@ -66,7 +66,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 ### Instructor
 | Feature | Details |
 |---|---|
-| Dashboard | Name, ID, department, active courses count |
+| Dashboard | Name, ID, department; cards: active sections, classes today, missing scores, attendance still to take this week (`GET /api/dashboard/instructor`) |
 | Teaching schedule | Day tabs; lecture / lab labels |
 | Attendance | 3 steps: course/section → date + session → students with Present/Absent → submit. Duplicate submit blocked |
 | Grading | 3 steps: course/section → component → score per student. Existing scores pre-filled; "X not graded" hint |
@@ -75,6 +75,7 @@ The project was first built as a **mobile app** (React Native, Node.js, MySQL, P
 ### Admin
 | Feature | Details |
 |---|---|
+| Dashboard | Cards: active students (and instructors), sections this term, open support requests, unpaid charges total (`GET /api/dashboard/admin`) |
 | Users | Add, edit, deactivate students and instructors (soft delete) |
 | Lookups | Campuses, departments, majors (with credit cap), rooms, payment types, support categories |
 | Terms | Create terms with their enrollment and add/drop windows |

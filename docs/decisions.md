@@ -366,3 +366,23 @@ order, at most 6, each with this term's sections (empty = not offered this term)
 
 ### Admin UI placement
 Traits, question bank, careers with roadmaps and course-trait tags are tabs of one page, `/admin/career`.
+
+## PB-22 Usability
+
+### Dashboards (real numbers)
+- One read-only feature, `Features/Dashboard`, with `GET /api/dashboard/student | instructor | admin` (policy per
+  action, user from the token). It owns no tables.
+- Student and instructor numbers are **composed from the owning features' read services** (`IStudentGradesService`,
+  `IEnrollmentService`, `IScheduleService`, `IMyFinanceService`, `INotificationInboxService`, `IAttendanceService`,
+  `IGradeEntryService`), so GPA, credit cap, balance and attendance standing use exactly the rules of their own pages.
+  The admin counts are plain read-only queries in `DashboardRepository`.
+- "Today" is the **UTC date**, the same day attendance uses (`AttendanceService.Today`). Day-of-week 1 = Monday … 6 = Saturday,
+  so Sunday has no classes.
+- Student "attendance warnings" = enrolled courses this term whose standing (rule A5) is Warning or Critical; the card
+  also says how many are Critical.
+- Instructor "missing scores" = the grading page's `NotGraded` summed over the instructor's current-term sections that
+  aren't finalized. "Attendance to take" (`Rules/AttendanceDue`) = meetings from **Monday of this week up to today**,
+  inside the term, with no session yet for that meeting and date.
+- Admin: active = `IsActive` users (deactivated and soft-deleted excluded); "open support requests" = Open + InProgress
+  ("new" = Open); "unpaid charges" = Pending + Partial, total = Σ amount − Σ payments of those charges.
+- Every card links to the page behind the number; the unread-notifications card has no link (the bell is the place).

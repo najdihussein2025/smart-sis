@@ -57,3 +57,41 @@ export const lookups = {
 export function paged<T>(items: T[], page = 1, pageSize = 20, totalCount = items.length) {
   return { items, page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) }
 }
+
+/** Dashboard numbers (GET /api/dashboard/*). Simulated (SR-23). */
+export const dashboards = {
+  student: {
+    termName: 'Fall 2026',
+    cumulativeGpa: 3.25,
+    termGpa: null,
+    creditsEarned: 30,
+    enrolledCredits: 9,
+    maxCredits: 18,
+    classesToday: 2,
+    outstandingBalance: 1500,
+    overdueBalance: 0,
+    nextDueDate: '2026-12-01',
+    unreadNotifications: 3,
+    attendanceWarnings: 1,
+    attendanceCritical: 0,
+  },
+  instructor: {
+    termName: 'Fall 2026',
+    today: '2026-11-11',
+    activeSections: 5,
+    classesToday: 2,
+    missingScores: 12,
+    sectionsWithMissingScores: 2,
+    attendanceToTake: 1,
+  },
+  admin: {
+    termName: 'Fall 2026',
+    activeStudents: 42,
+    activeInstructors: 6,
+    sectionsThisTerm: 18,
+    openSupportRequests: 4,
+    newSupportRequests: 1,
+    unpaidCharges: 7,
+    outstandingTotal: 10250,
+  },
+}
