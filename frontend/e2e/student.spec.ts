@@ -90,7 +90,8 @@ test.describe('Student journeys (§3 Student)', () => {
 
     await login(page, student.universityId)
     await openNav(page, 'Student', 'Support')
-    await page.getByRole('button', { name: 'New request' }).click()
+    // The empty list repeats the button, so there can be two once it has loaded.
+    await page.getByRole('button', { name: 'New request' }).first().click()
     const dialog = page.getByRole('dialog', { name: 'New support request' })
     await dialog.getByLabel('Category').selectOption({ label: 'Registration' })
     await dialog.getByLabel('Subject').fill(subject)
