@@ -19,7 +19,7 @@ public class UtcDateTimeConverterTests
     [Fact]
     public void Read_UnspecifiedFromDatabase_IsUtc()
     {
-        var converter = new SisDbContext.UtcDateTimeConverter();
+        var converter = new UtcDateTimeConverter();
         var fromDb = new DateTime(2026, 12, 1, 6, 0, 0, DateTimeKind.Unspecified);
 
         var value = (DateTime)converter.ConvertFromProvider(fromDb)!;
@@ -31,7 +31,7 @@ public class UtcDateTimeConverterTests
     [Fact]
     public void Write_UtcValue_IsStoredUnchanged()
     {
-        var converter = new SisDbContext.UtcDateTimeConverter();
+        var converter = new UtcDateTimeConverter();
         var utc = new DateTime(2026, 12, 1, 6, 0, 0, DateTimeKind.Utc);
 
         Assert.Equal(utc, (DateTime)converter.ConvertToProvider(utc)!);
