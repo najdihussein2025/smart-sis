@@ -72,6 +72,8 @@ namespace SmartSis.Api.Shared.Data.Migrations
 
                     b.HasIndex("MajorId");
 
+                    b.HasIndex("PublishAt");
+
                     b.HasIndex("SectionId");
 
                     b.HasIndex("Scope", "PublishAt");
@@ -675,7 +677,7 @@ namespace SmartSis.Api.Shared.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("StudentId", "UpdatedAt");
 
                     b.ToTable("ChatConversations", (string)null);
                 });
@@ -1033,11 +1035,13 @@ namespace SmartSis.Api.Shared.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BatchId");
-
                     b.HasIndex("PaymentTypeId");
 
                     b.HasIndex("TermId");
+
+                    b.HasIndex("BatchId", "Status");
+
+                    b.HasIndex("Status", "DueDate");
 
                     b.HasIndex("StudentId", "Status");
 
@@ -1703,6 +1707,10 @@ namespace SmartSis.Api.Shared.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Type", "Link");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
                     b.HasIndex("UserId", "ReadAt");
 
                     b.ToTable("Notifications", (string)null);
@@ -1858,7 +1866,7 @@ namespace SmartSis.Api.Shared.Data.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("RequestId");
+                    b.HasIndex("RequestId", "CreatedAt");
 
                     b.ToTable("SupportMessages", (string)null);
                 });

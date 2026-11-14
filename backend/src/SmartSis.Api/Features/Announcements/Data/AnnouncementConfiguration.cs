@@ -16,6 +16,7 @@ internal sealed class AnnouncementConfiguration : IEntityTypeConfiguration<Annou
         b.Property(x => x.Title).HasMaxLength(200);
         b.Property(x => x.Body).HasColumnType("nvarchar(max)");
         b.HasIndex(x => new { x.Scope, x.PublishAt });
+        b.HasIndex(x => x.PublishAt);   // feeds and lists: PublishAt <= now, newest first, and the scheduled-notify job
         b.HasOne(x => x.Author).WithMany().HasForeignKey(x => x.AuthorId);
         b.HasOne(x => x.Major).WithMany().HasForeignKey(x => x.MajorId).IsRequired(false);
         b.HasOne(x => x.Section).WithMany().HasForeignKey(x => x.SectionId).IsRequired(false);

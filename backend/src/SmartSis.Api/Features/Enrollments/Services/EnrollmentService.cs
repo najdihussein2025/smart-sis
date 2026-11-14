@@ -52,12 +52,14 @@ public sealed class EnrollmentService(
                 {
                     var term = await enrollments.GetCurrentTermAsync(ct)
                                ?? throw new BusinessRuleException("There is no current term to enroll in.", EnrollmentPolicy.WindowClosed);
+                    // The student's own facts are read before the section lock, so the lock (rule E6) is held only for
+                    // the section read, the seat count and the insert: concurrent students queue for less time.
+                    var state = await StateAsync(studentId, term, ct);
                     var section = await enrollments.LockSectionAsync(sectionId, ct) ?? throw NotFoundException.For<Section>(sectionId);
                     label = section.Candidate.Label;
                     if (section.TermId != term.Id)
                         throw new BusinessRuleException($"{label} isn't offered in the current term.", "not_current_term");
 
-                    var state = await StateAsync(studentId, term, ct);
                     EnrollmentPolicy.CheckEnroll(state, section.Candidate);
 
                     enrollments.Add(new Enrollment { StudentId = studentId, SectionId = sectionId, EnrolledAt = Now });
@@ -86,11 +88,11 @@ public sealed class EnrollmentService(
         {
             var term = await enrollments.GetCurrentTermAsync(ct)
                        ?? throw new BusinessRuleException("There is no current term.", EnrollmentPolicy.WindowClosed);
+            var state = await StateAsync(studentId, term, ct);   // before the lock, as in EnrollAsync
             var to = await enrollments.LockSectionAsync(request.ToSectionId, ct) ?? throw NotFoundException.For<Section>(request.ToSectionId);
             if (to.TermId != term.Id)
                 throw new BusinessRuleException($"{to.Candidate.Label} isn't offered in the current term.", "not_current_term");
 
-            var state = await StateAsync(studentId, term, ct);
             SwapPolicy.Check(state, request.FromSectionId, to.Candidate);
 
             var old = await enrollments.FindActiveAsync(studentId, request.FromSectionId, ct)

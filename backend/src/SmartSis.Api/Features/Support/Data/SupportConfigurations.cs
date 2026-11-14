@@ -36,6 +36,7 @@ internal sealed class SupportMessageConfiguration : IEntityTypeConfiguration<Sup
     {
         b.ToTable("SupportMessages");
         b.Property(x => x.Body).HasColumnType("nvarchar(max)");
+        b.HasIndex(x => new { x.RequestId, x.CreatedAt });   // thread order and "last activity" of each request in the inbox
         b.HasOne(x => x.Request).WithMany(r => r.Messages).HasForeignKey(x => x.RequestId);
         b.HasOne(x => x.Author).WithMany().HasForeignKey(x => x.AuthorId);
     }

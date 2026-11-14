@@ -117,11 +117,8 @@ public sealed class AnnouncementRepository(SisDbContext db) : IAnnouncementRepos
         return rows.Select(r => (r.Id, r.Role)).ToList();
     }
 
-    public Task<bool> IsNotifiedAsync(int announcementId, CancellationToken ct)
-    {
-        var marker = AnnouncementSchedule.LinkMarker(announcementId);
-        return db.Set<Notification>().AnyAsync(n => n.Type == NotificationType.Announcement && n.Link != null && n.Link.EndsWith(marker), ct);
-    }
+    public async Task<bool> IsNotifiedAsync(int announcementId, CancellationToken ct) =>
+        (await NotifiedIdsAsync([announcementId], ct)).Count > 0;
 
     public async Task<List<Announcement>> ListDueForNotificationAsync(DateTime since, DateTime now, CancellationToken ct)
     {
@@ -129,10 +126,32 @@ public sealed class AnnouncementRepository(SisDbContext db) : IAnnouncementRepos
             .Where(a => a.PublishAt > since && a.PublishAt <= now && (a.ExpiresAt == null || a.ExpiresAt > now))
             .OrderBy(a => a.PublishAt)
             .ToListAsync(ct);
-        var due = new List<Announcement>();
-        foreach (var a in live)
-            if (!await IsNotifiedAsync(a.Id, ct)) due.Add(a);
-        return due;
+        if (live.Count == 0) return live;
+
+        // One query for all candidates (was one query per announcement).
+        var notified = await NotifiedIdsAsync([.. live.Select(a => a.Id)], ct);
+        return [.. live.Where(a => !notified.Contains(a.Id))];
+    }
+
+    /// <summary>
+    /// Ids among <paramref name="ids"/> that already have announcement notifications. Matches the exact links
+    /// <see cref="AnnouncementSchedule.LinkFor"/> builds (one per role), so SQL Server can seek the
+    /// (Type, Link) index instead of scanning every notification with <c>LIKE '%marker'</c>.
+    /// </summary>
+    private async Task<HashSet<int>> NotifiedIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct)
+    {
+        var byLink = new Dictionary<string, int>();
+        foreach (var id in ids)
+            foreach (var role in Enum.GetValues<UserRole>())
+                byLink[AnnouncementSchedule.LinkFor(role, id)] = id;
+        var links = byLink.Keys.ToList();
+
+        var found = await db.Set<Notification>().AsNoTracking()
+            .Where(n => n.Type == NotificationType.Announcement && n.Link != null && links.Contains(n.Link))
+            .Select(n => n.Link!)
+            .Distinct()
+            .ToListAsync(ct);
+        return [.. found.Select(l => byLink[l])];
     }
 
     public void Add(Announcement announcement) => db.Set<Announcement>().Add(announcement);

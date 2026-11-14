@@ -11,7 +11,7 @@ internal sealed class ChatConversationConfiguration : IEntityTypeConfiguration<C
     {
         b.ToTable("ChatConversations");
         b.Property(x => x.Title).HasMaxLength(200);
-        b.HasIndex(x => x.StudentId);
+        b.HasIndex(x => new { x.StudentId, x.UpdatedAt });   // a student's conversations, most recent first
         b.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId);
     }
 }
