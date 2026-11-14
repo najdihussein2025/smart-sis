@@ -154,4 +154,53 @@ describe('CartPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Swap' }))
     expect(await screen.findByText('Swapped CSC 210 A for CSC 210 B.')).toBeInTheDocument()
   })
+
+  it('drops an enrolled course after confirming, during add/drop', async () => {
+    let enrolled = [enrolledCsc210A]
+    mockCart([], { window: 'AddDrop' })
+    server.use(
+      http.get('/api/enrollment/my', () => HttpResponse.json(mine(enrolled, 'AddDrop'))),
+      http.post('/api/enrollment/drop', async ({ request }) => {
+        expect(await request.json()).toEqual({ sectionId: 21 })
+        enrolled = []
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    const { user } = renderAt('/student/cart', { as: 'Student' })
+
+    await user.click(await screen.findByRole('button', { name: 'Drop CSC 210 A' }))
+    const dialog = screen.getByRole('dialog', { name: 'Drop CSC 210 A?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Drop course' }))
+
+    expect(await screen.findByText(/Dropped CSC 210 A/)).toBeInTheDocument()
+    expect(await screen.findByText('No courses yet')).toBeInTheDocument()
+  })
+
+  it('cancelling the confirmation keeps the course', async () => {
+    mockCart([], { window: 'AddDrop', enrolled: [enrolledCsc210A] })
+    const { user } = renderAt('/student/cart', { as: 'Student' })
+    await user.click(await screen.findByRole('button', { name: 'Drop CSC 210 A' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByText('CSC 210 A')).toBeInTheDocument()
+  })
+
+  it('drop is disabled outside add/drop', async () => {
+    mockCart([], { window: 'Enrollment', enrolled: [enrolledCsc210A] })
+    renderAt('/student/cart', { as: 'Student' })
+    expect(await screen.findByRole('button', { name: 'Drop CSC 210 A' })).toBeDisabled()
+    expect(screen.getByText('You can drop a course only during the add/drop period.')).toBeInTheDocument()
+  })
+
+  it('shows the API reason when a drop is refused', async () => {
+    mockCart([], { window: 'AddDrop', enrolled: [enrolledCsc210A] })
+    server.use(
+      http.post('/api/enrollment/drop', () =>
+        HttpResponse.json({ title: 'Courses can be dropped only during the add/drop period.' }, { status: 409 })),
+    )
+    const { user } = renderAt('/student/cart', { as: 'Student' })
+    await user.click(await screen.findByRole('button', { name: 'Drop CSC 210 A' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Drop course' }))
+    expect(await within(screen.getByRole('dialog')).findByText('Courses can be dropped only during the add/drop period.')).toBeInTheDocument()
+  })
 })

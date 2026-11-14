@@ -14,6 +14,7 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { QueryError } from '@/shared/ui/QueryError'
 import { TableSkeleton } from '@/shared/ui/TableSkeleton'
 import { WindowBadge } from '@/shared/ui/WindowBadge'
+import { EnrolledList } from '../components/EnrolledList'
 import { EnrollResults } from '../components/EnrollResults'
 import { SwapDialog } from '../components/SwapDialog'
 import { useCart, useRemoveFromCart } from '../hooks'
@@ -22,6 +23,7 @@ import type { CartItem } from '../types'
 /**
  * PB-04 / T15 and PB-05 / T19: the sections the student plans to take. They pick several and enroll at once; each
  * section that fails shows its own reason (window, credit cap, prerequisite, same course, time conflict, full).
+ * PB-07 / T25: enrolled sections are listed underneath with Drop.
  */
 export function CartPage() {
   const cart = useCart()
@@ -128,6 +130,10 @@ export function CartPage() {
           </Card>
         </div>
       )}
+
+      <div className="mt-6">
+        <EnrolledList onDropped={saved.show} />
+      </div>
 
       <SwapDialog item={swapping} enrolled={enrolled} onClose={() => setSwapping(null)} onSwapped={saved.show} />
     </>
