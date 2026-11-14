@@ -45,6 +45,9 @@
 - Reference data that never changes (`GradeScales`) → `HasData` in its configuration.
 - Dev data (simulated users, a term, courses) → `Shared/Data/Seed/DevSeeder.cs`, runs only in Development
   when the DB is empty. Simulated data only (SR-23).
+- Feature demo data (grades, attendance, charges…) → one `IDevSeedStep` class per feature in
+  `Shared/Data/Seed/<Feature>DevSeed.cs`. DevSeeder discovers them and runs them by `Order` after the base data
+  (6 students 3001–3006, a past term with completed CSC 101, current-term enrollments).
 
 ## Embeddings
 `KnowledgeChunks.Embedding` is `varbinary(max)` (float32 little-endian). Switch to `VECTOR` only after the

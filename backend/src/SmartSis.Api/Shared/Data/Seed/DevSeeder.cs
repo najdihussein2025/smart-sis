@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using SmartSis.Api.Features.Courses.Enums;
 using SmartSis.Api.Features.Courses.Models.Entities;
+using SmartSis.Api.Features.Enrollments.Enums;
+using SmartSis.Api.Features.Enrollments.Models.Entities;
 using SmartSis.Api.Features.Lookups.Models.Entities;
 using SmartSis.Api.Features.Sections.Enums;
 using SmartSis.Api.Features.Sections.Models.Entities;
@@ -130,13 +132,71 @@ public static class DevSeeder
             return s;
         }
 
+        var csc101A = NewSection(csc101, "A", 40, (1, 8, 75, rooms[0], MeetingType.Lecture), (3, 8, 75, rooms[0], MeetingType.Lecture));
+        var csc210A = NewSection(csc210, "A", 30, (2, 10, 75, rooms[1], MeetingType.Lecture), (4, 10, 120, rooms[2], MeetingType.Lab));
+        var csc210B = NewSection(csc210, "B", 30, (1, 14, 75, rooms[1], MeetingType.Lecture), (3, 14, 75, rooms[1], MeetingType.Lecture));
+        var csc310A = NewSection(csc310, "A", 30, (2, 13, 75, rooms[0], MeetingType.Lecture), (5, 9, 120, rooms[2], MeetingType.Lab));
+        var mat201A = NewSection(mat201, "A", 40, (1, 10, 75, rooms[0], MeetingType.Lecture), (3, 10, 75, rooms[0], MeetingType.Lecture));
+        db.AddRange(csc101A, csc210A, csc210B, csc310A, mat201A);
+
+        // A finished past term, so transcripts, GPA and prerequisites have history.
+        var pastTerm = new Term
+        {
+            Name = $"Spring {today.Year}",
+            StartDate = today.AddDays(-250),
+            EndDate = today.AddDays(-130),
+            EnrollStart = now.AddDays(-270),
+            EnrollEnd = now.AddDays(-260),
+            AddDropStart = now.AddDays(-260),
+            AddDropEnd = now.AddDays(-240),
+        };
+        db.Add(pastTerm);
+        var pastCsc101 = new Section { Course = csc101, Term = pastTerm, SectionCode = "A", Instructor = instructor, Capacity = 40 };
+        pastCsc101.Meetings.Add(new SectionMeeting { DayOfWeek = 2, StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(9, 15), Room = rooms[0], Type = MeetingType.Lecture });
+        db.Add(pastCsc101);
+
+        // More simulated students (SR-23), all in the seeded major, same dev password.
+        var classmates = Enumerable.Range(2, 5).Select(n =>
+        {
+            var u = new User
+            {
+                UniversityId = 3000 + n, Email = $"student{n}@smartsis.local", FullName = $"Demo Student {n}",
+                Role = UserRole.Student, PasswordHash = hash,
+            };
+            return new Student { User = u, Major = csMajor, Campus = campus, EnrollmentDate = new DateOnly(2024, 9, 1) };
+        }).ToList();
+        db.AddRange(classmates.Select(c => c.User));
+        db.AddRange(classmates);
+
+        // Demo enrollments. Demo Student (3001) passed CSC 101 last term and takes CSC 210 A + MAT 201 A now.
+        var enrolledAt = now.AddDays(-10);
+        Enrollment Completed(Student s, decimal pct, string letter, decimal points) => new()
+        {
+            Student = s, Section = pastCsc101, Status = EnrollmentStatus.Completed, FinalPct = pct, LetterGrade = letter,
+            GradePoints = points, EnrolledAt = now.AddDays(-265),
+        };
+        Enrollment Current(Student s, Section section) => new() { Student = s, Section = section, EnrolledAt = enrolledAt };
         db.AddRange(
-            NewSection(csc101, "A", 40, (1, 8, 75, rooms[0], MeetingType.Lecture), (3, 8, 75, rooms[0], MeetingType.Lecture)),
-            NewSection(csc210, "A", 30, (2, 10, 75, rooms[1], MeetingType.Lecture), (4, 10, 120, rooms[2], MeetingType.Lab)),
-            NewSection(csc210, "B", 30, (1, 14, 75, rooms[1], MeetingType.Lecture), (3, 14, 75, rooms[1], MeetingType.Lecture)),
-            NewSection(csc310, "A", 30, (2, 13, 75, rooms[0], MeetingType.Lecture), (5, 9, 120, rooms[2], MeetingType.Lab)),
-            NewSection(mat201, "A", 40, (1, 10, 75, rooms[0], MeetingType.Lecture), (3, 10, 75, rooms[0], MeetingType.Lecture)));
+            Completed(student, 82, "B", 3.0m),
+            Completed(classmates[0], 91, "A-", 3.7m),
+            Completed(classmates[1], 74, "C+", 2.3m),
+            Current(student, csc210A), Current(student, mat201A),
+            Current(classmates[0], csc210A), Current(classmates[0], mat201A),
+            Current(classmates[1], csc210A),
+            Current(classmates[2], csc101A), Current(classmates[2], mat201A),
+            Current(classmates[3], csc101A),
+            Current(classmates[4], csc101A), Current(classmates[4], mat201A));
 
         await db.SaveChangesAsync(ct);
+
+        // Feature seed steps (grades, attendance, charges, …): each feature adds an IDevSeedStep class.
+        foreach (var step in typeof(DevSeeder).Assembly.GetTypes()
+                     .Where(t => typeof(IDevSeedStep).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
+                     .Select(t => (IDevSeedStep)Activator.CreateInstance(t)!)
+                     .OrderBy(s => s.Order).ThenBy(s => s.GetType().Name))
+        {
+            await step.SeedAsync(db, sp, ct);
+            await db.SaveChangesAsync(ct);
+        }
     }
 }

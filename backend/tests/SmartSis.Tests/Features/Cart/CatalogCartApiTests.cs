@@ -61,7 +61,8 @@ public sealed class CatalogCartApiTests(SisApiFactory factory) : IClassFixture<S
         Assert.Equal(["A", "B"], detail.Sections.Select(s => s.SectionCode));
         var a = detail.Sections[0];
         Assert.Equal("Demo Instructor", a.InstructorName);
-        Assert.Equal(a.Capacity, a.SeatsLeft);
+        Assert.Equal(a.Capacity - a.SeatsTaken, a.SeatsLeft);
+        Assert.True(a.SeatsTaken > 0);
         Assert.Equal(2, a.Meetings.Count);
     }
 
