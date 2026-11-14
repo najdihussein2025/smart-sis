@@ -105,6 +105,10 @@ public sealed class RoleAccessTests(SisApiFactory factory) : IClassFixture<SisAp
         { "GET", "/api/cart" },
         { "POST", "/api/cart" },
         { "DELETE", "/api/cart/1" },
+        { "GET", "/api/enrollment/my" },
+        { "POST", "/api/enrollment/enroll" },
+        { "POST", "/api/enrollment/swap" },
+        { "POST", "/api/enrollment/drop" },
     };
 
     [Theory]
