@@ -14,6 +14,8 @@ import { UsersPage } from '@/features/users/pages/UsersPage'
 import { CatalogPage } from '@/features/catalog/pages/CatalogPage'
 import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
+import { CareerPage } from '@/features/career/pages/CareerPage'
+import { AdminCareerPage } from '@/features/career/pages/AdminCareerPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -45,6 +47,7 @@ export const routes: RouteObject[] = [
       { path: 'courses', element: <CatalogPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'cart', element: <CartPage /> },
+      { path: 'career', element: <CareerPage /> },
       ...soon([
         ['schedule', 'Schedule', 3],
         ['grades', 'Grades', 5],
@@ -87,6 +90,7 @@ export const routes: RouteObject[] = [
       { path: 'terms', element: <TermsPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'sections', element: <SectionsPage /> },
+      { path: 'career', element: <AdminCareerPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
         ['grade-components', 'Grade components', 2],
