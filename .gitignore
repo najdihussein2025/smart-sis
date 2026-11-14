@@ -32,3 +32,9 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Playwright (frontend e2e)
+playwright-report/
+test-results/
+blob-report/
+frontend/e2e/.run.json

@@ -10,7 +10,9 @@
     "typecheck": "tsc -b",
     "gen:api": "openapi-typescript http://localhost:5080/openapi/v1.json -o src/shared/api/schema.d.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium firefox webkit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -26,6 +28,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/vite": "^4.1.10",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
