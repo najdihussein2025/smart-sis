@@ -106,22 +106,31 @@ public sealed class EnrollmentApiTests(SisApiFactory factory) : IClassFixture<Si
         var mat201 = await factory.SectionIdAsync("MAT 201");
         var other = await factory.ClientForAsync(await factory.AddStudentAsync(3902));
         await factory.ResetStudentAsync(3902);
+        // Exactly one free seat, taken by the other student.
         await factory.WithDbAsync(async db =>
         {
-            (await db.Set<Section>().SingleAsync(s => s.Id == mat201)).Capacity = 1;
+            var taken = await db.Set<Enrollment>().CountAsync(e => e.SectionId == mat201 && e.Status == EnrollmentStatus.Enrolled);
+            (await db.Set<Section>().SingleAsync(s => s.Id == mat201)).Capacity = taken + 1;
             await db.SaveChangesAsync();
         });
-        Assert.True((await EnrollAsync(other, mat201)).Results[0].Success);
-
-        var outcome = (await EnrollAsync(client, mat201)).Results[0];
-
-        Assert.Equal(EnrollmentPolicy.SectionFull, outcome.Code);
-        Assert.Equal("Section MAT 201 A is full.", outcome.Message);
-        await factory.WithDbAsync(async db =>
+        try
         {
-            (await db.Set<Section>().SingleAsync(s => s.Id == mat201)).Capacity = 40;
-            await db.SaveChangesAsync();
-        });
+            Assert.True((await EnrollAsync(other, mat201)).Results[0].Success);
+
+            var outcome = (await EnrollAsync(client, mat201)).Results[0];
+
+            Assert.Equal(EnrollmentPolicy.SectionFull, outcome.Code);
+            Assert.Equal("Section MAT 201 A is full.", outcome.Message);
+        }
+        finally
+        {
+            await factory.ResetStudentAsync(3902);
+            await factory.WithDbAsync(async db =>
+            {
+                (await db.Set<Section>().SingleAsync(s => s.Id == mat201)).Capacity = 40;
+                await db.SaveChangesAsync();
+            });
+        }
     }
 
     [Fact]
