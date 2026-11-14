@@ -72,3 +72,9 @@ Dropping sets `Status = Dropped`, `CountsInGpa = false`. Re-enrolling later crea
 - Overdue = something still owed and the due date is **before** today (UTC date); due today is not overdue.
 - Outstanding balance = Σ(amount − paid) over unpaid charges; `nextDueDate` = earliest due date today or later of an unpaid charge.
 - "Completed" tab = `Paid`; "Pending" tab = `Pending` + `Partial`.
+
+### Admin payments screen
+- `/admin/payments` has two tabs: **Charges** (search by University ID or name, status, term, major; unpaid first) and
+  **Batches** (paid / charged count, "Show charges" filters the Charges tab by that batch).
+- The payment dialog shows amount, paid and remaining balance, offers "Full balance", and refuses more than the balance
+  before sending (F3 in the browser; the API checks again). Paid charges have no "Record payment" button.
