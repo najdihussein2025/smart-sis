@@ -97,6 +97,21 @@ public sealed class AttendanceRepository(SisDbContext db) : IAttendanceRepositor
                 s.SubmittedAt))
             .ToListAsync(ct);
 
+    public Task<List<MyCourse>> GetMyCoursesAsync(int studentId, int termId, CancellationToken ct) =>
+        db.Set<Enrollment>().AsNoTracking()
+            .Where(e => e.StudentId == studentId && e.Section.TermId == termId
+                        && (e.Status == EnrollmentStatus.Enrolled || e.Status == EnrollmentStatus.DroppedAbsence))
+            .OrderBy(e => e.Section.Course.Code).ThenBy(e => e.Section.SectionCode)
+            .Select(e => new MyCourse(e.Id, e.SectionId, e.Section.Course.Code, e.Section.Course.Name, e.Section.SectionCode, e.Section.Course.Credits, e.Status))
+            .ToListAsync(ct);
+
+    public Task<List<MyMark>> GetMarksOfAsync(IReadOnlyCollection<int> enrollmentIds, CancellationToken ct) =>
+        db.Set<AttendanceRecord>().AsNoTracking()
+            .Where(r => enrollmentIds.Contains(r.EnrollmentId))
+            .OrderByDescending(r => r.Session.SessionDate).ThenByDescending(r => r.Session.Meeting.StartTime)
+            .Select(r => new MyMark(r.EnrollmentId, r.Session.SessionDate, r.Session.Meeting.DayOfWeek, r.Session.Meeting.StartTime, r.Session.Meeting.Type, r.Status))
+            .ToListAsync(ct);
+
     public void Add(AttendanceSession session) => db.Add(session);
 
     public void Add(AbsenceAlert alert) => db.Add(alert);

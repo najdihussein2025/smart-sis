@@ -1,6 +1,7 @@
 using SmartSis.Api.Features.Attendance.Enums;
 using SmartSis.Api.Features.Attendance.Models.Dtos;
 using SmartSis.Api.Features.Attendance.Models.Entities;
+using SmartSis.Api.Features.Enrollments.Enums;
 using SmartSis.Api.Features.Sections.Enums;
 
 namespace SmartSis.Api.Features.Attendance.Interfaces;
@@ -22,6 +23,9 @@ public interface IAttendanceService
 
     /// <summary>Instructor: save Present / Absent for every enrolled student, then apply the absence rules (A2, A3).</summary>
     Task<SubmitAttendanceResultDto> SubmitAsync(SubmitAttendanceRequest request, CancellationToken ct);
+
+    /// <summary>Student: absences per course this term, with the colour standing and the dates (PB-11). Own data only.</summary>
+    Task<MyAttendanceDto> GetMineAsync(CancellationToken ct);
 }
 
 /// <summary>A meeting with what the date and ownership checks need.</summary>
@@ -31,6 +35,13 @@ public sealed record MeetingInfo(
 
 /// <summary>An Enrolled student of a section.</summary>
 public sealed record RosterStudent(int EnrollmentId, int StudentId, long UniversityId, string FullName, string Email);
+
+/// <summary>A course the student takes (or was dropped from for absences) this term.</summary>
+public sealed record MyCourse(
+    int EnrollmentId, int SectionId, string CourseCode, string CourseName, string SectionCode, int Credits, EnrollmentStatus Status);
+
+/// <summary>A recorded mark of one of the student's enrollments.</summary>
+public sealed record MyMark(int EnrollmentId, DateOnly Date, int DayOfWeek, TimeOnly StartTime, MeetingType Type, AttendanceStatus Status);
 
 /// <summary>A recorded mark with its student.</summary>
 public sealed record RecordedMark(int EnrollmentId, long UniversityId, string FullName, AttendanceStatus Status);
@@ -60,6 +71,12 @@ public interface IAttendanceRepository
     Task<Dictionary<int, List<AbsenceAlertLevel>>> GetSentAlertsAsync(IReadOnlyCollection<int> enrollmentIds, CancellationToken ct);
 
     Task<List<SessionSummaryDto>> ListSessionsAsync(int sectionId, CancellationToken ct);
+
+    /// <summary>The student's Enrolled and DroppedAbsence enrollments in the term, by course code.</summary>
+    Task<List<MyCourse>> GetMyCoursesAsync(int studentId, int termId, CancellationToken ct);
+
+    /// <summary>Every recorded mark of these enrollments, newest first.</summary>
+    Task<List<MyMark>> GetMarksOfAsync(IReadOnlyCollection<int> enrollmentIds, CancellationToken ct);
 
     void Add(AttendanceSession session);
     void Add(AbsenceAlert alert);

@@ -113,6 +113,26 @@ public sealed class AttendanceService(
         }
     }
 
+    public async Task<MyAttendanceDto> GetMineAsync(CancellationToken ct)
+    {
+        var term = await attendance.GetCurrentTermAsync(ct);
+        if (term is null) return new MyAttendanceDto(null, null, []);
+
+        var courses = await attendance.GetMyCoursesAsync(me.UserId, term.Value.Id, ct);
+        var marks = (await attendance.GetMarksOfAsync(courses.Select(c => c.EnrollmentId).ToList(), ct)).ToLookup(m => m.EnrollmentId);
+        var rows = courses.Select(c =>
+        {
+            var mine = marks[c.EnrollmentId].ToList();
+            var absent = mine.Where(m => m.Status == AttendanceStatus.Absent)
+                .Select(m => new AbsenceDateDto(m.Date, m.DayOfWeek, m.StartTime, m.Type)).ToList();
+            var limit = AbsencePolicy.LimitFor(c.Credits);
+            return new CourseAttendanceDto(
+                c.SectionId, c.CourseCode, c.CourseName, c.SectionCode, c.Credits, absent.Count, limit, Math.Max(0, limit - absent.Count),
+                AbsencePolicy.StandingFor(absent.Count, limit), c.Status, mine.Count, absent);
+        }).ToList();
+        return new MyAttendanceDto(term.Value.Id, term.Value.Name, rows);
+    }
+
     /// <summary>
     /// Rules A2 and A3 for the students marked absent: each one's absences now include this session (one more than saved).
     /// A due alert is recorded in AbsenceAlerts (so it is sent once) with an email and a notification; at limit + 1 the

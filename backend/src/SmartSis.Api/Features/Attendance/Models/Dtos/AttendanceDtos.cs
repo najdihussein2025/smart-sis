@@ -1,4 +1,5 @@
 using SmartSis.Api.Features.Attendance.Enums;
+using SmartSis.Api.Features.Enrollments.Enums;
 using SmartSis.Api.Features.Sections.Enums;
 
 namespace SmartSis.Api.Features.Attendance.Models.Dtos;
@@ -116,3 +117,43 @@ public sealed record AbsenceAlertDto(int EnrollmentId, string FullName, AbsenceA
 /// <param name="SubmittedAt">When it was submitted (UTC).</param>
 public sealed record SessionSummaryDto(
     int SessionId, int MeetingId, DateOnly SessionDate, int DayOfWeek, TimeOnly StartTime, MeetingType Type, int Present, int Absent, DateTime SubmittedAt);
+
+/// <summary>The signed-in student's attendance this term (PB-11).</summary>
+/// <param name="TermId">Current term id, or null when no term is current (no courses then).</param>
+/// <param name="TermName">Current term name.</param>
+/// <param name="Courses">One row per course taken this term, by course code.</param>
+public sealed record MyAttendanceDto(int? TermId, string? TermName, IReadOnlyList<CourseAttendanceDto> Courses);
+
+/// <summary>Absences in one course.</summary>
+/// <param name="SectionId">Section id.</param>
+/// <param name="CourseCode">Course code.</param>
+/// <param name="CourseName">Course name.</param>
+/// <param name="SectionCode">Section code.</param>
+/// <param name="Credits">Credits.</param>
+/// <param name="Absences">Absences so far.</param>
+/// <param name="Limit">Absence limit, credits × 3 (rule A1). One more than this drops the course.</param>
+/// <param name="Remaining">Absences left before reaching the limit (0 at or over it).</param>
+/// <param name="Standing">"Perfect" (green, 0), "Warning" (orange) or "Critical" (red, limit − 1 or more), rule A5.</param>
+/// <param name="EnrollmentStatus">"Enrolled", or "DroppedAbsence" when the absences dropped the course.</param>
+/// <param name="SessionsRecorded">Sessions the student was marked in (present or absent).</param>
+/// <param name="AbsenceDates">Each absence, newest first.</param>
+public sealed record CourseAttendanceDto(
+    int SectionId,
+    string CourseCode,
+    string CourseName,
+    string SectionCode,
+    int Credits,
+    int Absences,
+    int Limit,
+    int Remaining,
+    AbsenceStanding Standing,
+    EnrollmentStatus EnrollmentStatus,
+    int SessionsRecorded,
+    IReadOnlyList<AbsenceDateDto> AbsenceDates);
+
+/// <summary>One absence.</summary>
+/// <param name="Date">Date of the session.</param>
+/// <param name="DayOfWeek">1 = Monday … 6 = Saturday.</param>
+/// <param name="StartTime">The meeting's start.</param>
+/// <param name="Type">"Lecture" or "Lab".</param>
+public sealed record AbsenceDateDto(DateOnly Date, int DayOfWeek, TimeOnly StartTime, MeetingType Type);
