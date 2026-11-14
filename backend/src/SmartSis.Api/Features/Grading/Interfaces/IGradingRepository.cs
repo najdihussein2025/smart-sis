@@ -23,6 +23,15 @@ public sealed record TeachingSectionRow(
 /// <summary>A graded attempt with the start date of its term, for ordering.</summary>
 public sealed record AttemptRow(GradedAttempt Attempt, DateOnly TermStart);
 
+/// <summary>One of the student's enrollments (not plain Dropped), for the grades and transcript views.</summary>
+public sealed record StudentCourseRow(
+    int EnrollmentId, int SectionId, int CourseId, string CourseCode, string CourseName, string SectionCode, int Credits,
+    int TermId, string TermName, DateOnly TermStart, bool TermIsCurrent,
+    EnrollmentStatus Status, decimal? FinalPct, string? LetterGrade, decimal? GradePoints, bool CountsInGpa);
+
+/// <summary>A component with its course, for a whole term at once.</summary>
+public sealed record TermComponentRow(int CourseId, ComponentInfo Component);
+
 /// <summary>EF queries for the Grading feature. No SaveChanges here.</summary>
 public interface IGradingRepository
 {
@@ -73,4 +82,18 @@ public interface IGradingRepository
 
     void Add(TermResult result);
     void Remove(TermResult result);
+
+    // ---- Student views (PB-09) ----
+    Task<(int Id, string Name)?> GetCurrentTermAsync(CancellationToken ct);
+
+    /// <summary>The student's Enrolled, Completed and DroppedAbsence enrollments, optionally in one term, by course code.</summary>
+    Task<List<StudentCourseRow>> StudentCoursesAsync(int studentId, int? termId, CancellationToken ct);
+
+    Task<List<TermComponentRow>> TermComponentsAsync(int termId, IReadOnlyCollection<int> courseIds, CancellationToken ct);
+
+    /// <summary>Untracked (EnrollmentId, ComponentId, Score) of these enrollments.</summary>
+    Task<List<(int EnrollmentId, int ComponentId, decimal Score)>> ScoresAsync(IReadOnlyCollection<int> enrollmentIds, CancellationToken ct);
+
+    /// <summary>Untracked.</summary>
+    Task<List<TermResult>> ReadTermResultsAsync(int studentId, CancellationToken ct);
 }

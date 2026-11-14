@@ -14,6 +14,13 @@ public interface IGradeEntryService
     Task<FinalizeResultDto> FinalizeAsync(int sectionId, CancellationToken ct);
 }
 
+/// <summary>Student: own grades this term and transcript (PB-09).</summary>
+public interface IStudentGradesService
+{
+    Task<MyGradesDto> GetMineAsync(CancellationToken ct);
+    Task<TranscriptDto> GetTranscriptAsync(CancellationToken ct);
+}
+
 /// <summary>Rule G6: TermResults is a cache rebuilt from the enrollments, never edited by hand.</summary>
 public interface ITermResultService
 {

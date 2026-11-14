@@ -12,6 +12,7 @@ public static class GradingModule
         services.AddScoped<IGradeComponentService, GradeComponentService>();
         services.AddScoped<IGradeEntryService, GradeEntryService>();
         services.AddScoped<ITermResultService, TermResultService>();
+        services.AddScoped<IStudentGradesService, StudentGradesService>();
         return services;
     }
 }

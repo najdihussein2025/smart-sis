@@ -129,4 +129,37 @@ public sealed class GradingRepository(SisDbContext db) : IGradingRepository
     public void Add(TermResult result) => db.Set<TermResult>().Add(result);
 
     public void Remove(TermResult result) => db.Set<TermResult>().Remove(result);
+
+    // ---- Student views (PB-09) ----
+
+    public async Task<(int Id, string Name)?> GetCurrentTermAsync(CancellationToken ct)
+    {
+        var t = await db.Set<Term>().AsNoTracking().Where(x => x.IsCurrent).Select(x => new { x.Id, x.Name }).FirstOrDefaultAsync(ct);
+        return t is null ? null : (t.Id, t.Name);
+    }
+
+    public Task<List<StudentCourseRow>> StudentCoursesAsync(int studentId, int? termId, CancellationToken ct) =>
+        db.Set<Enrollment>().AsNoTracking()
+            .Where(e => e.StudentId == studentId && e.Status != EnrollmentStatus.Dropped && (termId == null || e.Section.TermId == termId))
+            .OrderBy(e => e.Section.Course.Code).ThenBy(e => e.Id)
+            .Select(e => new StudentCourseRow(
+                e.Id, e.SectionId, e.Section.CourseId, e.Section.Course.Code, e.Section.Course.Name, e.Section.SectionCode, e.Section.Course.Credits,
+                e.Section.TermId, e.Section.Term.Name, e.Section.Term.StartDate, e.Section.Term.IsCurrent,
+                e.Status, e.FinalPct, e.LetterGrade, e.GradePoints, e.CountsInGpa))
+            .ToListAsync(ct);
+
+    public Task<List<TermComponentRow>> TermComponentsAsync(int termId, IReadOnlyCollection<int> courseIds, CancellationToken ct) =>
+        Components.AsNoTracking().Where(c => c.TermId == termId && courseIds.Contains(c.CourseId)).OrderBy(c => c.Id)
+            .Select(c => new TermComponentRow(c.CourseId, new ComponentInfo(c.Id, c.Name, c.MaxGrade, c.Weight)))
+            .ToListAsync(ct);
+
+    public async Task<List<(int EnrollmentId, int ComponentId, decimal Score)>> ScoresAsync(IReadOnlyCollection<int> enrollmentIds, CancellationToken ct)
+    {
+        var rows = await db.Set<StudentGrade>().AsNoTracking().Where(g => enrollmentIds.Contains(g.EnrollmentId))
+            .Select(g => new { g.EnrollmentId, g.ComponentId, g.Score }).ToListAsync(ct);
+        return [.. rows.Select(r => (r.EnrollmentId, r.ComponentId, r.Score))];
+    }
+
+    public Task<List<TermResult>> ReadTermResultsAsync(int studentId, CancellationToken ct) =>
+        db.Set<TermResult>().AsNoTracking().Where(r => r.StudentId == studentId).ToListAsync(ct);
 }
