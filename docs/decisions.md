@@ -410,3 +410,37 @@ Traits, question bank, careers with roadmaps and course-trait tags are tabs of o
   wide content scrolls inside its own box (`TableScroll`, tab lists).
 - Below `sm` the notifications dropdown is a full-width panel under the top bar instead of hanging off the bell.
 - Dashboard "today" uses the UTC date (same as attendance); known gap for the first hours of the local day.
+
+## PB-23 Browser compatibility and regression
+
+### Browsers (T79)
+Supported browsers (BRD OI-6, still open with stakeholders) are tested as: **Chromium** (Chrome), **Firefox**,
+**WebKit** (Safari's engine, Playwright build on Windows) and **Microsoft Edge** (`channel: 'msedge'`, only when Edge is
+installed; `E2E_EDGE=0/1` overrides). Desktop viewport only; the 360 px layout is not part of this run. Real Safari on
+macOS/iOS is not tested: WebKit is the closest we can run on Windows.
+
+### How the e2e tests run
+- Playwright (`@playwright/test`, pinned) in `frontend/`, specs in `frontend/e2e/`, `npm run e2e`. Vitest excludes
+  `e2e/**`, so `npm test` never runs them.
+- `playwright.config.ts` starts (or reuses) the API on **:5190** against LocalDB `SmartSisE2E` and the **production build**
+  with `vite preview` on **:5199**. The `/api` proxy target is `VITE_API_PROXY` (default `http://localhost:5080`).
+  The API's `AiService:BaseUrl` points at an unused port so the assistant must show its "not available" message.
+- Every test makes its own simulated data through the admin API (random University IDs `7xxxxxxxx`, random course codes,
+  `e2e.<id>@smartsis.local`; SR-23). `global-setup.ts` creates a **new current term per run** (enrollment window open
+  now), so runs never clash with older runs' rooms or instructor timetable. Side effect: after a run the e2e database's
+  current term is the last e2e term, not the seeded one. Reset with `DROP DATABASE SmartSisE2E`.
+- Each browser project gets its own meeting hour and each test its own weekday (`slot()`), because the seeded instructor
+  teaches every test section and §4 refuses room and instructor clashes.
+- Time zone `Asia/Beirut` and locale `en-GB` in every browser, so time-zone bugs show up (UTC would hide them).
+
+### DateTime kind from SQL Server (bug found)
+SQL Server's `datetime2` returns `DateTimeKind.Unspecified`, so on the real database the API sent term windows, payment
+and announcement times **without the trailing `Z`**. Browsers read those as local time: term windows were shown 2 h early
+in Beirut and shifted again on every save. EF InMemory keeps the kind, which is why the integration tests never saw it.
+Fix: `SisDbContext.UtcDateTimeConverter` on every `DateTime`/`DateTime?` marks values UTC on read (writes unchanged,
+no migration). Covered by `UtcDateTimeConverterTests` and the e2e "create a term" test.
+
+### Test cases (T80)
+`docs/Smart-SIS-Test-Cases.xlsx` is not in the repository, so the official TC_01–TC_114 run is blocked. We did not
+reconstruct its contents. `docs/test-results.md` lists the TC ids the code already maps and a requirements-based
+regression from PROJECT.md §3/§4 instead.
