@@ -85,7 +85,9 @@ public static class SharedRegistration
         // Web
         // Enums travel as their names ("Elective", "AddDrop"), not numbers, in requests, responses and OpenAPI.
         services.AddControllers(o => o.Filters.Add<FluentValidationFilter>())
-            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+            // Model-binding / JSON 400s use the same shape as our validators (see ExceptionMiddleware).
+            .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = InvalidModelStateHandler.Throw);
         // The OpenAPI generator reads these (minimal-API) options, not MVC's. Without this line the document
         // still says "integer" and the generated frontend types disagree with the real responses.
         services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));

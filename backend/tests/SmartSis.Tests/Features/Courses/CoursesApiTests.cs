@@ -198,9 +198,50 @@ public sealed class CoursesApiTests(SisApiFactory factory) : IClassFixture<SisAp
         var res = await (await AdminAsync()).PostAsJsonAsync(Url, r);
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
-        // Missing lists are rejected by ASP.NET's model binding before the validator runs; its keys are PascalCase.
+        // Missing lists are rejected by model binding before the validator runs; keys still match the validator's.
         var keys = (await ProblemAsync(res)).GetProperty("errors").EnumerateObject().Select(p => p.Name);
-        Assert.Contains(field, keys, kind == "missing-lists" ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+        Assert.Contains(field, keys, StringComparer.Ordinal);
+    }
+
+    // Raw JSON so the body can omit a field or carry an unknown enum name; both fail during model binding.
+    public static TheoryData<string, string, string> InvalidJsonBodies => new()
+    {
+        { "missing-prerequisiteIds", """ "majors": [] """, "prerequisiteIds" },
+        { "unknown-type", """ "prerequisiteIds": [], "majors": [ { "majorId": 1, "type": "Foo" } ] """, "majors[0].type" },
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidJsonBodies))]
+    public async Task Create_InvalidJsonBody_Returns400InValidatorShape(string kind, string lists, string field)
+    {
+        _ = kind;
+        var seed = await SeedAsync();
+        var body = $$"""
+            { "code": "{{UniqueCode()}}", "name": "Bad body", "credits": 3, "description": null,
+              "departmentId": {{seed.CscDept}}, {{lists}} }
+            """;
+
+        var res = await (await AdminAsync()).PostAsync(Url, new StringContent(body, System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        var problem = await ProblemAsync(res);
+        Assert.Equal("Some fields are not valid.", problem.GetProperty("title").GetString());
+        Assert.False(string.IsNullOrEmpty(problem.GetProperty("traceId").GetString()));
+        var keys = problem.GetProperty("errors").EnumerateObject().Select(p => p.Name).ToList();
+        Assert.Contains(field, keys, StringComparer.Ordinal);
+        Assert.DoesNotContain("request", keys, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Create_MalformedJson_Returns400InValidatorShape()
+    {
+        var res = await (await AdminAsync()).PostAsync(Url, new StringContent("{ \"code\": ", System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        var problem = await ProblemAsync(res);
+        Assert.Equal("Some fields are not valid.", problem.GetProperty("title").GetString());
+        Assert.True(problem.TryGetProperty("traceId", out _));
+        Assert.DoesNotContain(problem.GetProperty("errors").EnumerateObject(), p => p.Name.StartsWith('$'));
     }
 
     [Theory]
