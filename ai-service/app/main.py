@@ -4,10 +4,12 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 
+from app.career.router import router as career_router
 from app.config import Settings, get_settings
 from app.schemas import ChatRequest, ChatResponse, IngestRequest, IngestResponse
 
 app = FastAPI(title="Smart SIS AI service", version="0.1.0")
+app.include_router(career_router)
 
 
 def require_service_key(
