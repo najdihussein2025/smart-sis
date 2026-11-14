@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { server } from './server'
 
@@ -30,6 +30,9 @@ class TestRequest extends NodeRequest {
   }
 }
 globalThis.Request = TestRequest
+
+// findBy* / waitFor wait up to 1 s by default, too short when the whole suite runs in parallel.
+configure({ asyncUtilTimeout: 5000 })
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => {

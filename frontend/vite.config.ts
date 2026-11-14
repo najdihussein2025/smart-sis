@@ -21,6 +21,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     restoreMocks: true,
+    // The suite renders the real routes; on slower or busy machines a single test can take several seconds.
+    testTimeout: 30_000,
     // Fixed time zone so date and time conversions give the same result on every machine.
     env: { TZ: 'UTC' },
   },
