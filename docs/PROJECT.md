@@ -146,6 +146,7 @@ Each term has two windows:
 - At **limit + 1** the student is **automatically dropped** from the course.
 - An absence drop records an **F** (0.0) that **counts in the GPA**.
 - Student view colours: 0 absences green "Perfect", some absences orange "Warning", near/at limit red "Critical".
+- Attendance is taken **once per meeting and date**, for a date on the meeting's weekday, inside the term and not in the future. Every enrolled student is marked Present or Absent; it can't be edited afterwards.
 
 ### Finance
 - Admin charges all students of a major in one action (a charge batch).
