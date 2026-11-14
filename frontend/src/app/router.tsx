@@ -16,6 +16,8 @@ import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
 import { StudentSupportPage } from '@/features/support/pages/StudentSupportPage'
 import { StudentSupportRequestPage } from '@/features/support/pages/StudentSupportRequestPage'
+import { AdminSupportPage } from '@/features/support/pages/AdminSupportPage'
+import { AdminSupportRequestPage } from '@/features/support/pages/AdminSupportRequestPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
@@ -90,12 +92,13 @@ export const routes: RouteObject[] = [
       { path: 'terms', element: <TermsPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'sections', element: <SectionsPage /> },
+      { path: 'support', element: <AdminSupportPage /> },
+      { path: 'support/:id', element: <AdminSupportRequestPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
         ['grade-components', 'Grade components', 2],
         ['payments', 'Payments', 6],
         ['announcements', 'Announcements', 6],
-        ['support', 'Support inbox', 6],
         ['knowledge', 'Knowledge base', 7],
       ]),
     ],
