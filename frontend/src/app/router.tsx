@@ -24,6 +24,7 @@ import { AdminSupportPage } from '@/features/support/pages/AdminSupportPage'
 import { AdminSupportRequestPage } from '@/features/support/pages/AdminSupportRequestPage'
 import { InstructorAttendancePage } from '@/features/attendance/pages/InstructorAttendancePage'
 import { StudentAttendancePage } from '@/features/attendance/pages/StudentAttendancePage'
+import { AnnouncementsPage } from '@/features/announcements/pages/AnnouncementsPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
 import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
 import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
       { path: 'support/:id', element: <StudentSupportRequestPage /> },
       { path: 'attendance', element: <StudentAttendancePage /> },
       { path: 'grades', element: <StudentGradesPage /> },
+      { path: 'announcements', element: <AnnouncementsPage /> },
       ...soon([
         ['assistant', 'Assistant', 7],
       ]),
@@ -82,9 +84,7 @@ export const routes: RouteObject[] = [
       { path: 'schedule', element: <TeachingSchedulePage /> },
       { path: 'attendance', element: <InstructorAttendancePage /> },
       { path: 'grading', element: <InstructorGradingPage /> },
-      ...soon([
-        ['announcements', 'Announcements', 6],
-      ]),
+      { path: 'announcements', element: <AnnouncementsPage /> },
     ],
   },
   {
@@ -105,9 +105,9 @@ export const routes: RouteObject[] = [
       { path: 'support', element: <AdminSupportPage /> },
       { path: 'support/:id', element: <AdminSupportRequestPage /> },
       { path: 'grade-components', element: <GradeComponentsPage /> },
+      { path: 'announcements', element: <AnnouncementsPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
-        ['announcements', 'Announcements', 6],
         ['knowledge', 'Knowledge base', 7],
       ]),
     ],

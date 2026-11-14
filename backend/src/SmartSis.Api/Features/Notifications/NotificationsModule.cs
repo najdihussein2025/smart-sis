@@ -12,6 +12,7 @@ public static class NotificationsModule
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IEmailQueue, EmailQueue>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<INotificationInboxService, NotificationInboxService>();
         services.AddHostedService<EmailOutboxJob>();
         return services;
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router'
-import { LogOut, Menu, X, UserRound, Bell, type LucideIcon } from 'lucide-react'
+import { LogOut, Menu, X, UserRound, type LucideIcon } from 'lucide-react'
+import { NotificationBell } from '@/features/notifications/components/NotificationBell'
 import { useAuth } from '@/shared/auth/AuthProvider'
 import { initials } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
@@ -96,10 +97,7 @@ export function RoleShell({ areaLabel, nav }: { areaLabel: string; nav: NavItem[
           </button>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-3">
-            {/* TODO(phase-6): notifications dropdown with unread count */}
-            <button className="rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-ink" aria-label="Notifications">
-              <Bell className="size-5" />
-            </button>
+            <NotificationBell />
             {user && (
               <div className="flex items-center gap-2.5">
                 <span className="grid size-9 place-items-center rounded-full bg-brand text-[13px] font-medium text-white">
