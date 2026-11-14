@@ -15,6 +15,8 @@ import { CatalogPage } from '@/features/catalog/pages/CatalogPage'
 import { CourseDetailPage } from '@/features/catalog/pages/CourseDetailPage'
 import { CartPage } from '@/features/cart/pages/CartPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
+import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
+import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
 /** Routes not built yet: [path, title, phase]. Replace each with the real page when its phase lands. */
@@ -65,10 +67,10 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <InstructorDashboard /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'grading', element: <InstructorGradingPage /> },
       ...soon([
         ['schedule', 'Teaching schedule', 5],
         ['attendance', 'Attendance', 5],
-        ['grading', 'Grading', 5],
         ['announcements', 'Announcements', 6],
       ]),
     ],
@@ -87,9 +89,9 @@ export const routes: RouteObject[] = [
       { path: 'terms', element: <TermsPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'sections', element: <SectionsPage /> },
+      { path: 'grade-components', element: <GradeComponentsPage /> },
       ...soon([
         ['lookups', 'Lookups', 2],
-        ['grade-components', 'Grade components', 2],
         ['payments', 'Payments', 6],
         ['announcements', 'Announcements', 6],
         ['support', 'Support inbox', 6],
