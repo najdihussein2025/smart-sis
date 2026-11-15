@@ -77,7 +77,7 @@ describe('TermsPage', () => {
     renderAt('/admin/terms', { as: 'Admin' })
 
     const row = (await screen.findByRole('rowheader', { name: 'Fall 2026' })).closest('tr')!
-    expect(row).toHaveTextContent('01 Sept 2026 – 20 Dec 2026')
+    expect(row).toHaveTextContent('01 Sep 2026 – 20 Dec 2026')
     expect(within(row).getByText('Current')).toBeInTheDocument()
     expect(within(row).getByText('Add/drop open')).toBeInTheDocument()
 

@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
-import { ChevronDown, ClipboardCheck } from 'lucide-react'
+import { ChevronDown, ClipboardCheck, ShoppingCart } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { formatDateOnly } from '@/shared/lib/format'
 import { hm, shortDays } from '@/shared/lib/schedule'
 import { Badge } from '@/shared/ui/Badge'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { LinkButton } from '@/shared/ui/LinkButton'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { QueryError } from '@/shared/ui/QueryError'
 import { TableSkeleton } from '@/shared/ui/TableSkeleton'
@@ -23,9 +24,9 @@ export function StudentAttendancePage() {
 
   return (
     <>
-      <PageHeader eyebrow={mine.data?.termName ?? 'This term'} title="Attendance">
-        Each course allows 3 absences per credit (9 for a 3-credit course). One absence over the limit drops the course with
-        an F that counts in your GPA.
+      <PageHeader eyebrow={mine.data?.termName ?? 'Academics'} title="Attendance" icon={ClipboardCheck}>
+        Each course allows 3 absences per credit (9 for a 3-credit course). One absence over the limit drops the course with an F
+        that counts in your GPA.
       </PageHeader>
 
       {mine.isPending ? (
@@ -38,16 +39,22 @@ export function StudentAttendancePage() {
         </Card>
       ) : mine.data.courses.length === 0 ? (
         <Card>
-          <EmptyState icon={ClipboardCheck} title="No courses this term">
-            Your attendance shows here once you are enrolled. Enroll from your{' '}
-            <Link to="/student/cart" className="font-medium text-brand underline">
-              cart
-            </Link>
-            .
+          <EmptyState
+            icon={ClipboardCheck}
+            title="No courses this term"
+            action={
+              <LinkButton
+                to="/student/cart"
+              >
+                <ShoppingCart className="size-4" aria-hidden /> Open cart
+              </LinkButton>
+            }
+          >
+            Your attendance shows here once you are enrolled in sections from your cart.
           </EmptyState>
         </Card>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2" aria-label="Attendance per course">
+        <ul className="grid gap-6 md:grid-cols-2 md:gap-4" aria-label="Attendance per course">
           {mine.data.courses.map((c) => (
             <CourseCard key={c.sectionId} course={c} />
           ))}
@@ -57,7 +64,11 @@ export function StudentAttendancePage() {
   )
 }
 
-const bar: Record<AbsenceStanding, string> = { Perfect: 'bg-success', Warning: 'bg-warning', Critical: 'bg-danger' }
+const bar: Record<AbsenceStanding, string> = {
+  Perfect: 'bg-success',
+  Warning: 'bg-warning',
+  Critical: 'bg-danger',
+}
 
 function CourseCard({ course: c }: { course: CourseAttendance }) {
   const [open, setOpen] = useState(false)
@@ -67,48 +78,57 @@ function CourseCard({ course: c }: { course: CourseAttendance }) {
 
   return (
     <li>
-      <Card className="h-full">
-        <div className="space-y-3 p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="font-display text-lg font-semibold text-ink">{label}</h2>
-              <p className="text-sm text-muted">{c.courseName}</p>
-            </div>
-            <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-              {dropped && <Badge tone="danger">Dropped (F)</Badge>}
+      <Card className="flex h-full flex-col">
+        <CardHeader
+          title={
+            <>
+              <span className="font-semibold">{label}</span> <span className="font-normal">{c.courseName}</span>
+            </>
+          }
+          actions={
+            <>
+              {dropped && (
+                <Badge tone="danger" dot>
+                  Dropped (F)
+                </Badge>
+              )}
               <StandingBadge standing={c.standing} />
-            </div>
-          </div>
-
+            </>
+          }
+        />
+        <div className="flex-1 p-4 sm:p-5">
           <div>
-            <p className="text-sm text-ink">
+            <p className="tabular text-sm text-ink">
               <span className="font-display text-2xl font-semibold">{c.absences}</span>
               <span className="text-muted"> of {c.limit} absences</span>
             </p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-canvas" aria-hidden>
-              <div className={cn('h-full rounded-full', bar[c.standing])} style={{ width: `${Math.min(100, (c.absences / c.limit) * 100)}%` }} />
+              <div
+                className={cn('h-full rounded-full', bar[c.standing])}
+                style={{
+                  width: `${Math.min(100, (c.absences / c.limit) * 100)}%`,
+                }}
+              />
             </div>
             <p className="mt-2 text-sm text-muted">{summary(c)}</p>
           </div>
         </div>
 
-        <div className="border-t border-line">
-          <button
-            type="button"
-            className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium text-ink hover:bg-canvas"
-            aria-expanded={open}
-            aria-controls={datesId}
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? 'Hide' : 'Show'} absence dates for {label}
-            <ChevronDown className={cn('size-4 text-muted transition-transform', open && 'rotate-180')} aria-hidden />
-          </button>
-          {open && (
-            <div id={datesId} className="px-5 pb-4">
-              {c.absenceDates.length === 0 ? (
-                <p className="text-sm text-muted">No absences.</p>
-              ) : (
-                <ul className="space-y-1 text-sm" aria-label={`Absence dates for ${label}`}>
+        {c.absenceDates.length > 0 && (
+          <div className="border-t border-line">
+            <button
+              type="button"
+              className="flex min-h-11 w-full cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-ink hover:bg-canvas sm:px-5"
+              aria-expanded={open}
+              aria-controls={datesId}
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? 'Hide' : 'Show'} absence dates for {label}
+              <ChevronDown className={cn('size-4 text-muted transition-transform', open && 'rotate-180')} aria-hidden />
+            </button>
+            {open && (
+              <div id={datesId} className="px-4 pb-4 sm:px-5">
+                <ul className="tabular space-y-1 text-sm" aria-label={`Absence dates for ${label}`}>
                   {c.absenceDates.map((d) => (
                     <li key={`${d.date}-${d.startTime}`} className="flex justify-between gap-3">
                       <span className="text-ink">
@@ -120,10 +140,10 @@ function CourseCard({ course: c }: { course: CourseAttendance }) {
                     </li>
                   ))}
                 </ul>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
     </li>
   )

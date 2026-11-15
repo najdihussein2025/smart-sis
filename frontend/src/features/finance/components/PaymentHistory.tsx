@@ -8,8 +8,8 @@ export function PaymentHistory({ payments, label }: { payments: Payment[]; label
     <ul aria-label={label} className="space-y-1 text-sm">
       {payments.map((p) => (
         <li key={p.id} className="flex flex-wrap items-baseline gap-x-2">
-          <span className="font-medium tabular-nums text-ink">{formatMoney(p.amount)}</span>
-          <span className="text-muted">on {formatDate(p.paidAt)}</span>
+          <span className="tabular font-medium text-ink">{formatMoney(p.amount)}</span>
+          <span className="tabular text-muted">on {formatDate(p.paidAt)}</span>
           {p.note && <span className="text-muted">· {p.note}</span>}
         </li>
       ))}

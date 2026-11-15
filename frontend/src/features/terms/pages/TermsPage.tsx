@@ -35,10 +35,11 @@ export function TermsPage() {
   const close = () => setDialog({ open: false })
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow="Academics"
         title="Terms"
+        icon={CalendarRange}
         actions={
           <Button onClick={openNew}>
             <Plus className="size-4" aria-hidden /> New term
@@ -48,11 +49,7 @@ export function TermsPage() {
         Each term has an enrollment window, then an add/drop window.
       </PageHeader>
 
-      {saved && (
-        <div className="mb-4">
-          <Alert tone="success">{saved.name} saved.</Alert>
-        </div>
-      )}
+      {saved && <Alert tone="success">{saved.name} saved.</Alert>}
 
       <Card>
         {terms.isPending ? (
@@ -60,19 +57,22 @@ export function TermsPage() {
         ) : terms.isError ? (
           <QueryError error={terms.error} onRetry={() => terms.refetch()} />
         ) : terms.data.length === 0 ? (
-          <EmptyState icon={CalendarRange} title="No terms yet">
-            Create the first term with its enrollment and add/drop windows. Sections and enrollment need a term.
-            <div className="mt-4">
+          <EmptyState
+            icon={CalendarRange}
+            title="No terms yet"
+            action={
               <Button onClick={openNew}>
                 <Plus className="size-4" aria-hidden /> New term
               </Button>
-            </div>
+            }
+          >
+            Create the first term with its enrollment and add/drop windows. Sections and enrollment need a term.
           </EmptyState>
         ) : (
           <TableScroll>
             {/* A table from md up; on phones each term stacks into a block (same markup, no sideways scrolling). */}
             <table className="w-full text-left text-sm max-md:block md:min-w-[680px]">
-              <thead className="border-b border-line text-xs uppercase tracking-wide text-muted max-md:hidden">
+              <thead className="border-b border-line bg-canvas/60 text-xs uppercase tracking-wide text-muted max-md:hidden">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">Term</th>
                   <th scope="col" className="px-4 py-3 font-medium">Dates</th>
@@ -84,7 +84,7 @@ export function TermsPage() {
               </thead>
               <tbody className="divide-y divide-line max-md:block">
                 {terms.data.map((t) => (
-                  <tr key={t.id} className="max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-1.5 max-md:px-4 max-md:py-4">
+                  <tr key={t.id} className="transition-colors hover:bg-canvas/50 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-1.5 max-md:px-4 max-md:py-4">
                     <th scope="row" className="whitespace-nowrap px-4 py-3.5 font-medium text-ink max-md:p-0 max-md:text-base">{t.name}</th>
                     <td className="px-4 py-3.5 text-muted max-md:col-span-2 max-md:row-start-3 max-md:p-0">
                       <MobileLabel>Dates</MobileLabel>
@@ -101,8 +101,8 @@ export function TermsPage() {
                     <td className="px-4 py-3.5 max-md:col-span-2 max-md:row-start-2 max-md:p-0">
                       <TermStatus term={t} />
                     </td>
-                    <td className="px-4 py-3.5 text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
-                      <Button variant="ghost" className="h-8 px-2.5" onClick={() => setDialog({ open: true, term: t })} aria-label={`Edit ${t.name}`}>
+                    <td className="px-4 py-3.5 text-right max-md:col-start-2 max-md:row-start-1 max-md:-mr-2 max-md:p-0">
+                      <Button variant="ghost" size="sm" onClick={() => setDialog({ open: true, term: t })} aria-label={`Edit ${t.name}`}>
                         <Pencil className="size-4" aria-hidden /> Edit
                       </Button>
                     </td>
@@ -123,7 +123,7 @@ export function TermsPage() {
           close()
         }}
       />
-    </>
+    </div>
   )
 }
 
@@ -134,8 +134,8 @@ function TermStatus({ term }: { term: Term }) {
     <div className="flex flex-wrap gap-1.5">
       {term.isCurrent && <Badge tone="brand">Current</Badge>}
       {!term.isCurrent && phase && <Badge>{phase}</Badge>}
-      {term.currentWindow === 'Enrollment' && <Badge tone="success">Enrollment open</Badge>}
-      {term.currentWindow === 'AddDrop' && <Badge tone="success">Add/drop open</Badge>}
+      {term.currentWindow === 'Enrollment' && <Badge tone="success" dot>Enrollment open</Badge>}
+      {term.currentWindow === 'AddDrop' && <Badge tone="success" dot>Add/drop open</Badge>}
     </div>
   )
 }
@@ -156,7 +156,7 @@ function MobileLabel({ children }: { children: string }) {
 
 function TableSkeleton() {
   return (
-    <div className="space-y-3 p-5" aria-busy="true" aria-label="Loading terms">
+    <div className="space-y-3 p-5" role="status" aria-busy="true" aria-label="Loading terms">
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-10 animate-pulse rounded-lg bg-canvas" />
       ))}

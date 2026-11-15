@@ -51,7 +51,7 @@ export function Dialog({ open, title, description, onClose, children, actions, s
             </h2>
             {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
           </div>
-          <button data-close type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-brand-50 hover:text-ink">
+          <button data-close type="button" onClick={onClose} aria-label="Close" className="-mr-2 -mt-1 grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-muted hover:bg-brand-50 hover:text-ink sm:size-9">
             <X className="size-5" aria-hidden />
           </button>
         </div>

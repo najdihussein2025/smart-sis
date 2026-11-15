@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
@@ -77,6 +77,16 @@ describe('CatalogPage', () => {
     expect(queries.at(-1)?.get('type')).toBe('Elective')
   })
 
+  it('labels the program picker apart from the Major tab, and picks another program', async () => {
+    const queries = mockCatalog()
+    const { user } = renderAt('/student/courses', { as: 'Student' })
+    await screen.findByRole('list', { name: 'Courses' })
+
+    expect(screen.getByRole('tab', { name: 'Major' })).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText('Program'), 'Mathematics')
+    await waitFor(() => expect(queries.at(-1)?.get('majorId')).toBe('2'))
+  })
+
   it('shows an empty state when nothing matches', async () => {
     mockCatalog([])
     renderAt('/student/courses', { as: 'Student' })
@@ -126,5 +136,53 @@ describe('CourseDetailPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Add CSC 210 A to cart' }))
     expect(await screen.findByText("You're already enrolled in CSC 210 A.")).toBeInTheDocument()
+  })
+})
+
+// Final regression (T80): rows of the official test cases that had no web test yet.
+describe('CourseDetailPage: official test cases', () => {
+  const serve = (d: CatalogCourseDetail) =>
+    server.use(
+      http.get('/api/profile', () => HttpResponse.json(profileFor('Student'))),
+      http.get('/api/catalog/courses/2', () => HttpResponse.json(d)),
+    )
+
+  it('TC_12: each section shows its code, instructor, seats and weekly day, time and room', async () => {
+    serve(detail)
+    renderAt('/student/courses/2', { as: 'Student' })
+
+    expect(await screen.findByText('Section A')).toBeInTheDocument()
+    expect(screen.getByText('26 of 30 seats left')).toBeInTheDocument()
+    expect(screen.getByText('Demo Instructor')).toBeInTheDocument()
+    expect(screen.getByText('Instructor to be announced')).toBeInTheDocument()
+    const meetings = screen.getByRole('list', { name: 'Meetings of CSC 210 A' })
+    expect(meetings).toHaveTextContent('Tue')
+    expect(meetings).toHaveTextContent('10:00–11:15')
+    expect(meetings).toHaveTextContent('B-204')
+  })
+
+  it('TC_14 and TC_17: an enrolled section says "Enrolled", and the other sections warn about Swap', async () => {
+    serve({ ...detail, sections: detail.sections.map((s) => (s.id === 21 ? { ...s, status: 'Enrolled' as const } : { ...s, status: 'Available' as const, seatsLeft: 5 })) })
+    renderAt('/student/courses/2', { as: 'Student' })
+
+    expect(await screen.findByRole('button', { name: 'CSC 210 A: Enrolled' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Add CSC 210 B to cart' })).toBeEnabled()
+    const warning = screen.getByRole('status')
+    expect(warning).toHaveTextContent("You're already enrolled in section A.")
+    expect(warning).toHaveTextContent('use Swap')
+  })
+
+  it('TC_17: no warning when the student is not enrolled in any section of the course', async () => {
+    serve(detail)
+    renderAt('/student/courses/2', { as: 'Student' })
+    await screen.findByText('Section A')
+    expect(screen.queryByText(/already enrolled in section/)).not.toBeInTheDocument()
+  })
+
+  it('TC_16: a course with no sections says it is not offered this term', async () => {
+    serve({ ...detail, sections: [] })
+    renderAt('/student/courses/2', { as: 'Student' })
+    expect(await screen.findByText('Not offered this term')).toBeInTheDocument()
+    expect(screen.getByText(/no sections in the current term/)).toBeInTheDocument()
   })
 })

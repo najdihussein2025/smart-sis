@@ -74,6 +74,27 @@ describe('StudentGradesPage', () => {
     expect(screen.getByText('3.35')).toBeInTheDocument()
   })
 
+  it('a course with no grade components shows only the setup notice, no progress', async () => {
+    const bare: CourseGrades = { ...csc210, gradedWeight: 0, earned: 0, runningPct: null, components: [] }
+    mockGrades(myGrades({ courses: [bare] }))
+    renderAt('/student/grades', { as: 'Student' })
+
+    const course = await screen.findByRole('article', { name: 'CSC 210 grades' })
+    expect(within(course).getByText("The grade components for this course aren't set up yet.")).toBeInTheDocument()
+    expect(within(course).queryByRole('progressbar')).not.toBeInTheDocument()
+    expect(within(course).queryByText(/Graded so far/)).not.toBeInTheDocument()
+    expect(within(course).queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('the progress bar says graded and earned in words', async () => {
+    mockGrades()
+    renderAt('/student/grades', { as: 'Student' })
+    const bar = await screen.findByRole('progressbar', { name: 'Graded so far in CSC 210 A' })
+    expect(bar).toHaveAttribute('aria-valuetext', '50% graded, 42 of 100 points earned')
+    expect(screen.getByRole('heading', { level: 1, name: 'Grades' })).toBeInTheDocument()
+    expect(screen.getAllByText('Fall 2026').length).toBeGreaterThan(0)
+  })
+
   it('shows the transcript per term with term and cumulative GPA', async () => {
     mockGrades()
     const { user } = renderAt('/student/grades', { as: 'Student' })

@@ -44,6 +44,16 @@ export function GradeComponentsPage() {
   const total = list.data?.totalWeight ?? 0
   const locked = list.data?.isFinalized ?? false
   const weightLeft = (editing?: GradeComponent) => 100 - total + (editing?.weight ?? 0)
+  const term = terms.data?.find((t) => String(t.id) === termId)
+
+  // Why "New component" can't be used right now, shown under the button (a disabled button alone says nothing).
+  const blocked =
+    !course || !termId ? 'Choose a course first.'
+    : list.isPending ? null
+    : locked ? 'Locked: grades are finalized.'
+    : total >= 100 ? 'Weights already total 100%.'
+    : null
+  const newDisabled = !course || !termId || list.isPending || locked || total >= 100
 
   const confirmDelete = () => {
     if (!deleting) return
@@ -56,27 +66,35 @@ export function GradeComponentsPage() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow={term?.name ?? 'Academics'}
         title="Grade components"
+        icon={ListChecks}
         actions={
-          <Button onClick={() => setDialog({ open: true })} disabled={!course || !termId || locked || total >= 100}>
-            <Plus className="size-4" aria-hidden /> New component
-          </Button>
+          <div className="flex flex-col gap-1.5 sm:items-end">
+            <Button
+              onClick={() => setDialog({ open: true })}
+              disabled={newDisabled}
+              aria-describedby={blocked ? 'new-component-hint' : undefined}
+            >
+              <Plus className="size-4" aria-hidden /> New component
+            </Button>
+            {blocked && (
+              <p id="new-component-hint" className="text-[13px] text-muted">
+                {blocked}
+              </p>
+            )}
+          </div>
         }
       >
         What each course is graded on this term, out of how much, and how much each part weighs.
       </PageHeader>
 
-      {saved.message && (
-        <div className="mb-4">
-          <Alert tone="success">{saved.message}</Alert>
-        </div>
-      )}
+      {saved.message && <Alert tone="success">{saved.message}</Alert>}
 
       <Card>
-        <div className="grid gap-3 border-b border-line p-4 sm:grid-cols-2">
+        <div className="grid gap-3 border-b border-line p-4 sm:grid-cols-2 sm:px-5">
           <SelectField label="Term" value={termId ?? ''} onChange={(e) => setTermId(e.target.value)} disabled={!terms.data}>
             {terms.isPending && <option value="">Loading…</option>}
             {terms.data?.map((t) => (
@@ -114,7 +132,7 @@ export function GradeComponentsPage() {
           <QueryError error={list.error} onRetry={() => list.refetch()} />
         ) : (
           <>
-            <div className="space-y-2 border-b border-line p-4">
+            <div className="space-y-2 border-b border-line p-4 sm:px-5">
               <WeightBar total={total} />
               {locked && (
                 <p className="flex items-center gap-1.5 text-sm text-muted">
@@ -123,56 +141,62 @@ export function GradeComponentsPage() {
               )}
             </div>
             {items.length === 0 ? (
-              <EmptyState icon={ListChecks} title="No components yet">
+              <EmptyState
+                icon={ListChecks}
+                title="No components yet"
+                action={
+                  !locked && (
+                    <Button onClick={() => setDialog({ open: true })}>
+                      <Plus className="size-4" aria-hidden /> New component
+                    </Button>
+                  )
+                }
+              >
                 Add the parts {course?.code} is graded on this term, e.g. Midterm 30%, Project 20%, Final 50%.
-                <div className="mt-4">
-                  <Button onClick={() => setDialog({ open: true })}>
-                    <Plus className="size-4" aria-hidden /> New component
-                  </Button>
-                </div>
               </EmptyState>
             ) : (
               <TableScroll>
                 <table className="w-full min-w-[560px] text-left text-sm">
-                  <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                  <thead className="border-b border-line bg-canvas/60 text-xs uppercase tracking-wide text-muted">
                     <tr>
                       <th scope="col" className="px-4 py-3 font-medium">Component</th>
-                      <th scope="col" className="px-4 py-3 font-medium">Max grade</th>
-                      <th scope="col" className="px-4 py-3 font-medium">Weight</th>
+                      <th scope="col" className="px-4 py-3 text-right font-medium">Max grade</th>
+                      <th scope="col" className="px-4 py-3 text-right font-medium">Weight</th>
                       <th scope="col" className="px-4 py-3 font-medium">Scores</th>
                       <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
                     {items.map((c) => (
-                      <tr key={c.id}>
+                      <tr key={c.id} className="transition-colors hover:bg-canvas/50">
                         <th scope="row" className="px-4 py-3 font-medium text-ink">{c.name}</th>
-                        <td className="px-4 py-3 tabular-nums">{num(c.maxGrade)}</td>
-                        <td className="px-4 py-3 tabular-nums">{num(c.weight)}%</td>
+                        <td className="tabular px-4 py-3 text-right">{num(c.maxGrade)}</td>
+                        <td className="tabular px-4 py-3 text-right">{num(c.weight)}%</td>
                         <td className="px-4 py-3">
-                          {c.scoreCount > 0 ? <Badge>{c.scoreCount} entered</Badge> : <span className="text-muted">None yet</span>}
+                          {c.scoreCount > 0 ? <Badge tone="info">{c.scoreCount} entered</Badge> : <span className="text-muted">None yet</span>}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-right">
                           <Button
                             variant="ghost"
-                            className="h-8 px-2.5"
+                            size="sm"
                             disabled={locked}
                             onClick={() => setDialog({ open: true, component: c })}
                             aria-label={`Edit ${c.name}`}
                           >
                             <Pencil className="size-4" aria-hidden /> Edit
                           </Button>
+                          {/* A component with scores can't be deleted (the API says 409); the button says so up front. */}
                           <Button
-                            variant="ghost"
-                            className="h-8 px-2.5"
-                            disabled={locked}
+                            variant="danger-ghost"
+                            size="sm"
+                            disabled={locked || c.scoreCount > 0}
                             onClick={() => {
                               remove.reset()
                               setDeleting(c)
                             }}
-                            aria-label={`Delete ${c.name}`}
+                            aria-label={c.scoreCount > 0 ? `Delete ${c.name}: not possible, it has scores` : `Delete ${c.name}`}
                           >
-                            <Trash2 className="size-4" aria-hidden /> Delete
+                            <Trash2 className="size-4" aria-hidden /> {c.scoreCount > 0 ? 'Has scores' : 'Delete'}
                           </Button>
                         </td>
                       </tr>
@@ -212,6 +236,6 @@ export function GradeComponentsPage() {
       >
         The component is removed from {course?.code}. This only works while no scores have been entered for it.
       </ConfirmDialog>
-    </>
+    </div>
   )
 }

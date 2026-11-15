@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Inbox } from 'lucide-react'
 import { useAuth } from '@/shared/auth/AuthProvider'
 import { errorMessage } from '@/shared/api/problem'
 import { formatDateTime } from '@/shared/lib/format'
@@ -31,14 +31,14 @@ export function AdminSupportRequestPage() {
   const saved = useSavedMessage()
 
   const back = (
-    <Link to="/admin/support" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+    <Link to="/admin/support" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted hover:text-ink sm:min-h-0">
       <ArrowLeft className="size-4" aria-hidden /> Support inbox
     </Link>
   )
 
   if (request.isPending || request.isError)
     return (
-      <>
+      <div className="space-y-4">
         {back}
         <Card>
           {request.isPending ? (
@@ -47,7 +47,7 @@ export function AdminSupportRequestPage() {
             <QueryError error={request.error} onRetry={() => request.refetch()} />
           )}
         </Card>
-      </>
+      </div>
     )
 
   const r = request.data
@@ -60,9 +60,9 @@ export function AdminSupportRequestPage() {
   }
 
   return (
-    <>
+    <div className="space-y-4">
       {back}
-      <PageHeader eyebrow={r.categoryName} title={r.subject}>
+      <PageHeader eyebrow={r.categoryName} title={r.subject} icon={Inbox}>
         <span className="inline-flex flex-wrap items-center gap-2">
           <StatusBadge status={r.status} />
           <span>Submitted {formatDateTime(r.createdAt)}</span>
@@ -70,18 +70,14 @@ export function AdminSupportRequestPage() {
         </span>
       </PageHeader>
 
-      {saved.message && (
-        <div className="mb-4">
-          <Alert tone="success">{saved.message}</Alert>
-        </div>
-      )}
+      {saved.message && <Alert tone="success">{saved.message}</Alert>}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <Card className="space-y-6 p-5 lg:order-2 lg:self-start">
           <section aria-label="Student" className="text-sm">
             <h2 className="font-medium text-ink">Student</h2>
             <p className="mt-1 text-ink">{r.studentName}</p>
-            <p className="text-muted">{r.studentUniversityId}</p>
+            <p className="tabular text-muted">{r.studentUniversityId}</p>
             <a className="break-all text-brand hover:underline" href={`mailto:${r.studentEmail}`}>
               {r.studentEmail}
             </a>
@@ -157,6 +153,6 @@ export function AdminSupportRequestPage() {
           </div>
         </Card>
       </div>
-    </>
+    </div>
   )
 }

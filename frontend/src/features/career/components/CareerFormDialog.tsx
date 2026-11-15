@@ -156,8 +156,8 @@ export function CareerFormDialog({ open, career, traits, courses, onClose, onSav
               </SelectField>
               <Button
                 type="button"
-                variant="ghost"
-                className="mb-0.5 h-10 px-2"
+                variant="danger-ghost"
+                size="icon"
                 onClick={() => weights.remove(i)}
                 disabled={weights.fields.length <= 1}
                 aria-label={`Remove trait ${i + 1}`}
@@ -180,20 +180,20 @@ export function CareerFormDialog({ open, career, traits, courses, onClose, onSav
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-ink">Step {i + 1}</h4>
                 <div className="flex gap-1">
-                  <Button type="button" variant="ghost" className="h-8 px-2" onClick={() => steps.move(i, i - 1)} disabled={i === 0} aria-label={`Move step ${i + 1} up`}>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => steps.move(i, i - 1)} disabled={i === 0} aria-label={`Move step ${i + 1} up`}>
                     <ArrowUp className="size-4" aria-hidden />
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
-                    className="h-8 px-2"
+                    size="icon"
                     onClick={() => steps.move(i, i + 1)}
                     disabled={i === steps.fields.length - 1}
                     aria-label={`Move step ${i + 1} down`}
                   >
                     <ArrowDown className="size-4" aria-hidden />
                   </Button>
-                  <Button type="button" variant="ghost" className="h-8 px-2" onClick={() => steps.remove(i)} aria-label={`Remove step ${i + 1}`}>
+                  <Button type="button" variant="danger-ghost" size="icon" onClick={() => steps.remove(i)} aria-label={`Remove step ${i + 1}`}>
                     <Trash2 className="size-4" aria-hidden />
                   </Button>
                 </div>

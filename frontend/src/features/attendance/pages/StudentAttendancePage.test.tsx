@@ -24,7 +24,7 @@ function mock(body: MyAttendance | Response) {
   )
 }
 
-const card = (label: string) => screen.getByRole('heading', { name: label }).closest('li')!
+const card = (label: string) => screen.getByRole('heading', { name: new RegExp(`^${label}`) }).closest('li')!
 
 describe('StudentAttendancePage', () => {
   it('shows each course with its colour status in words', async () => {
@@ -76,11 +76,11 @@ describe('StudentAttendancePage', () => {
     expect(screen.queryByRole('list', { name: 'Absence dates for MAT 201 A' })).not.toBeInTheDocument()
   })
 
-  it('says "No absences" when opening a perfect course', async () => {
+  it('offers no absence dates for a perfect course', async () => {
     mock(mineOf([course('CSC 210', 0)]))
-    const { user } = renderAt('/student/attendance', { as: 'Student' })
-    await user.click(await screen.findByRole('button', { name: 'Show absence dates for CSC 210 A' }))
-    expect(screen.getByText('No absences.')).toBeInTheDocument()
+    renderAt('/student/attendance', { as: 'Student' })
+    expect(await screen.findByText('Perfect')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /absence dates for CSC 210 A/ })).not.toBeInTheDocument()
   })
 
   it('marks a course dropped for absences', async () => {
@@ -94,7 +94,7 @@ describe('StudentAttendancePage', () => {
     mock(mineOf([]))
     renderAt('/student/attendance', { as: 'Student' })
     expect(await screen.findByText('No courses this term')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'cart' })).toHaveAttribute('href', '/student/cart')
+    expect(screen.getByRole('link', { name: 'Open cart' })).toHaveAttribute('href', '/student/cart')
   })
 
   it('shows the error with a retry button', async () => {

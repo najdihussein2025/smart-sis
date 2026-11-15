@@ -8,9 +8,13 @@ export const statusLabels: Record<SupportStatus, string> = {
   Closed: 'Closed',
 }
 
-const tones = { Open: 'warning', InProgress: 'brand', Resolved: 'success', Closed: 'neutral' } as const
+const tones = { Open: 'warning', InProgress: 'info', Resolved: 'success', Closed: 'neutral' } as const
 
 /** Status pill with its name, so colour is never the only signal. */
 export function StatusBadge({ status }: { status: SupportStatus }) {
-  return <Badge tone={tones[status]}>{statusLabels[status]}</Badge>
+  return (
+    <Badge tone={tones[status]} dot>
+      {statusLabels[status]}
+    </Badge>
+  )
 }

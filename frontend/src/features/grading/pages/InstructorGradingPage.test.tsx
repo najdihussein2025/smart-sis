@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
@@ -74,7 +74,8 @@ describe('InstructorGradingPage', () => {
     expect(await scoreInput('Demo Student')).toHaveValue('42.5')
     expect(screen.getByLabelText('Score for Demo Student 2')).toHaveValue('')
     expect(screen.getByText('1 not graded')).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Midterm · 40%' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Midterm · 40%, 1 not graded' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Final · 60%, 2 not graded' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'CSC 210 · A — Data Structures (3 not graded)' })).toBeInTheDocument()
   })
 
@@ -83,7 +84,7 @@ describe('InstructorGradingPage', () => {
     const { user } = renderAt('/instructor/grading', { as: 'Instructor' })
     await scoreInput('Demo Student')
 
-    await user.click(screen.getByRole('tab', { name: 'Final · 60%' }))
+    await user.click(screen.getByRole('tab', { name: /^Final · 60%/ }))
     const first = await scoreInput('Demo Student')
     expect(screen.getByText('2 not graded')).toBeInTheDocument()
     await user.type(first, '88')
@@ -100,11 +101,21 @@ describe('InstructorGradingPage', () => {
     const input = await scoreInput('Demo Student 2')
 
     await user.type(input, '51')
-    await user.click(screen.getByRole('button', { name: 'Save scores' }))
-
+    // Checked as soon as the field is left, before any save.
+    await user.tab()
     expect(await screen.findByText('Enter a score between 0 and 50 (2 decimals).')).toBeInTheDocument()
     expect(input).toHaveAttribute('aria-invalid', 'true')
+
+    await user.click(screen.getByRole('button', { name: 'Save scores' }))
+    const summary = await screen.findByText('1 score is above the maximum (50). Fix it to save.')
+    await waitFor(() => expect(document.activeElement).toContainElement(summary))
     expect(sent).toEqual([])
+
+    // Correcting the score clears the error while typing.
+    await user.clear(input)
+    await user.type(input, '50')
+    expect(screen.queryByText('Enter a score between 0 and 50 (2 decimals).')).not.toBeInTheDocument()
+    expect(screen.queryByText('1 score is above the maximum (50). Fix it to save.')).not.toBeInTheDocument()
   })
 
   it('shows a 400 from the API under the student\'s score', async () => {
@@ -169,6 +180,67 @@ describe('InstructorGradingPage', () => {
     await user.selectOptions(screen.getByLabelText('Section'), 'MAT 201 · A — Discrete Mathematics')
 
     expect(await screen.findByText('No grade components yet')).toBeInTheDocument()
+  })
+
+  it('asks before switching component with unsaved scores, and keeps them on cancel', async () => {
+    const { sent } = mockGrading()
+    const { user } = renderAt('/instructor/grading', { as: 'Instructor' })
+    await user.type(await scoreInput('Demo Student 2'), '30')
+
+    await user.click(screen.getByRole('tab', { name: /^Final · 60%/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Discard unsaved scores?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('tab', { name: /^Midterm/ })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByLabelText('Score for Demo Student 2')).toHaveValue('30')
+
+    await user.click(screen.getByRole('tab', { name: /^Final · 60%/ }))
+    await user.click(within(screen.getByRole('dialog', { name: 'Discard unsaved scores?' })).getByRole('button', { name: 'Discard scores' }))
+    expect(screen.getByRole('tab', { name: /^Final/ })).toHaveAttribute('aria-selected', 'true')
+    expect(await scoreInput('Demo Student 2')).toHaveValue('')
+    expect(sent).toEqual([])
+  })
+
+  it('asks before switching section with unsaved scores', async () => {
+    mockGrading()
+    const { user } = renderAt('/instructor/grading', { as: 'Instructor' })
+    await user.type(await scoreInput('Demo Student 2'), '30')
+
+    await user.selectOptions(screen.getByLabelText('Section'), 'MAT 201 · A — Discrete Mathematics')
+    const dialog = screen.getByRole('dialog', { name: 'Discard unsaved scores?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByLabelText('Score for Demo Student 2')).toHaveValue('30')
+
+    await user.selectOptions(screen.getByLabelText('Section'), 'MAT 201 · A — Discrete Mathematics')
+    await user.click(within(screen.getByRole('dialog', { name: 'Discard unsaved scores?' })).getByRole('button', { name: 'Discard scores' }))
+    expect(await screen.findByText('No grade components yet')).toBeInTheDocument()
+  })
+
+  it('moves to the next student on Enter instead of saving', async () => {
+    const { sent } = mockGrading()
+    const { user } = renderAt('/instructor/grading', { as: 'Instructor' })
+    const first = await scoreInput('Demo Student')
+    await user.clear(first)
+    await user.type(first, '40{Enter}')
+
+    expect(screen.getByLabelText('Score for Demo Student 2')).toHaveFocus()
+    expect(sent).toEqual([])
+  })
+
+  it('keeps finalize off while the weights are not 100%, and says why', async () => {
+    mockGrading()
+    server.use(http.get('/api/instructor/grading/sections/21', () => HttpResponse.json({ ...section21(), totalWeight: 80 })))
+    renderAt('/instructor/grading', { as: 'Instructor' })
+    await scoreInput('Demo Student')
+
+    expect(screen.getByRole('button', { name: /Finalize grades/ })).toBeDisabled()
+    expect(screen.getByText(/the components add up to 80%, not 100%/)).toBeInTheDocument()
+  })
+
+  it('opens the section given in the URL', async () => {
+    mockGrading()
+    renderAt('/instructor/grading?section=41', { as: 'Instructor' })
+    expect(await screen.findByText('No grade components yet')).toBeInTheDocument()
+    expect(screen.getByLabelText('Section')).toHaveValue('41')
   })
 
   it('shows an empty state without sections', async () => {

@@ -39,7 +39,8 @@ export function AnnouncementsPage() {
   const [params] = useSearchParams()
   const highlightId = Number(params.get('announcement')) || null
 
-  const [view, setView] = useState<View>('feed')
+  // Posters land on what they manage; the feed is the second tab. A link from a notification opens the feed.
+  const [view, setView] = useState<View>(poster && !highlightId ? 'manage' : 'feed')
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<AnnouncementStatus | ''>('')
   const [dialog, setDialog] = useState<DialogState>({ open: false })
@@ -81,42 +82,38 @@ export function AnnouncementsPage() {
 
   const manageLabel = role === 'Admin' ? 'All posts' : 'My posts'
   const canPost = poster !== null
+  const newButton = (
+    <Button onClick={() => setDialog({ open: true })}>
+      <Plus className="size-4" aria-hidden /> New announcement
+    </Button>
+  )
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow={role === 'Admin' ? 'Administration' : role === 'Instructor' ? 'Teaching' : 'Campus news'}
+        eyebrow={role === 'Admin' ? 'Communication' : 'Campus'}
         title="Announcements"
-        actions={
-          canPost && (
-            <Button onClick={() => setDialog({ open: true })}>
-              <Plus className="size-4" aria-hidden /> New announcement
-            </Button>
-          )
-        }
+        icon={Megaphone}
+        actions={canPost && newButton}
       >
         {intro[role]}
       </PageHeader>
 
-      {saved.message && (
-        <div className="mb-4">
-          <Alert tone="success">{saved.message}</Alert>
-        </div>
-      )}
+      {saved.message && <Alert tone="success">{saved.message}</Alert>}
 
       {canPost && (
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <Tabs
             label="Announcement lists"
             value={view}
             onChange={switchView}
             items={[
-              { value: 'feed', label: 'Feed' },
               { value: 'manage', label: manageLabel },
+              { value: 'feed', label: 'Feed' },
             ]}
           />
           {view === 'manage' && (
-            <div className="w-48">
+            <div className="w-full sm:w-48">
               <SelectField
                 label="Status"
                 value={status}
@@ -141,15 +138,29 @@ export function AnnouncementsPage() {
         ) : list.isError ? (
           <QueryError error={list.error} onRetry={() => list.refetch()} />
         ) : list.data.items.length === 0 ? (
-          <EmptyState icon={Megaphone} title={view === 'feed' ? 'No announcements yet' : 'Nothing posted here'}>
-            {view === 'feed'
-              ? canPost
-                ? 'Nothing is published for you right now. Post one with "New announcement".'
-                : 'Nothing is published for you right now. New announcements also show up in the bell.'
-              : status
-                ? 'No announcement has this status. Choose another status.'
-                : 'Post the first one with "New announcement".'}
-          </EmptyState>
+          view === 'feed' ? (
+            <EmptyState icon={Megaphone} title={canPost ? 'No announcements for you yet' : 'No announcements yet'}>
+              {canPost
+                ? 'Announcements addressed to you will show up here and in the bell.'
+                : 'Nothing is published for you right now. New announcements also show up in the bell.'}
+            </EmptyState>
+          ) : status ? (
+            <EmptyState
+              icon={Megaphone}
+              title="Nothing posted here"
+              action={
+                <Button variant="ghost" onClick={() => setStatus('')}>
+                  Clear filters
+                </Button>
+              }
+            >
+              No announcement has this status. Choose another status.
+            </EmptyState>
+          ) : (
+            <EmptyState icon={Megaphone} title="Nothing posted here" action={newButton}>
+              Post one with “New announcement”.
+            </EmptyState>
+          )
         ) : (
           <>
             <ul className="divide-y divide-line" aria-label={view === 'feed' ? 'Announcements' : manageLabel}>
@@ -208,6 +219,6 @@ export function AnnouncementsPage() {
           "{toDelete?.title}" will disappear from every feed. Notifications already sent stay in people's bells.
         </p>
       </ConfirmDialog>
-    </>
+    </div>
   )
 }

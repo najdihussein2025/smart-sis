@@ -149,8 +149,8 @@ export function QuestionFormDialog({ open, question, traits, onClose, onSaved }:
                 </div>
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="mb-0.5 h-10 px-2"
+                  variant="danger-ghost"
+                  size="icon"
                   onClick={() => options.remove(i)}
                   disabled={options.fields.length <= 2}
                   aria-label={`Remove option ${i + 1}`}
@@ -203,8 +203,8 @@ function OptionPoints({
           </SelectField>
           <Button
             type="button"
-            variant="ghost"
-            className="mb-0.5 h-10 px-2"
+            variant="danger-ghost"
+            size="icon"
             onClick={() => points.remove(j)}
             aria-label={`Remove trait ${j + 1} from option ${index + 1}`}
           >
@@ -216,7 +216,7 @@ function OptionPoints({
       <Button
         type="button"
         variant="ghost"
-        className="h-8 px-2"
+        size="sm"
         onClick={() => points.append({ traitId: '', points: '1' })}
         disabled={traits.length === 0}
       >

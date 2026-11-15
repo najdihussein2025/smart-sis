@@ -30,13 +30,14 @@ import { KnowledgePage } from '@/features/knowledge/pages/KnowledgePage'
 import { CareerPage } from '@/features/career/pages/CareerPage'
 import { AdminCareerPage } from '@/features/career/pages/AdminCareerPage'
 import { NotFoundPage } from '@/features/common/pages/NotFoundPage'
+import { LookupsPage } from '@/features/lookups/pages/LookupsPage'
 import { GradeComponentsPage } from '@/features/grading/pages/GradeComponentsPage'
 import { InstructorGradingPage } from '@/features/grading/pages/InstructorGradingPage'
 import { StudentGradesPage } from '@/features/grading/pages/StudentGradesPage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
-/** Routes not built yet: [path, title, phase]. Replace each with the real page when its phase lands. */
-const soon = (items: [string, string, number][]): RouteObject[] =>
+/** Routes not built yet: [path, title, phase]. Replace each with the real page when its phase lands. Unused while every route is built; exported so it stays available. */
+export const soon = (items: [string, string, number][]): RouteObject[] =>
   items.map(([path, title, phase]) => ({ path, element: <ComingSoon title={title} phase={phase} /> }))
 
 /** Exported so tests can mount the real routes in a memory router. */
@@ -111,9 +112,7 @@ export const routes: RouteObject[] = [
       { path: 'announcements', element: <AnnouncementsPage /> },
       { path: 'knowledge', element: <KnowledgePage /> },
       { path: 'career', element: <AdminCareerPage /> },
-      ...soon([
-        ['lookups', 'Lookups', 2],
-      ]),
+      { path: 'lookups', element: <LookupsPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

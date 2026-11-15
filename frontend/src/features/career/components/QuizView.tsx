@@ -21,9 +21,11 @@ export function QuizView({ onCancel, onSubmitted }: Props) {
   const [missing, setMissing] = useState<string | null>(null)
 
   const back = (
-    <Button variant="ghost" onClick={onCancel} className="mb-4 px-2">
-      <ArrowLeft className="size-4" aria-hidden /> Back
-    </Button>
+    <div className="mb-4">
+      <Button variant="ghost" size="sm" onClick={onCancel}>
+        <ArrowLeft className="size-4" aria-hidden /> Back
+      </Button>
+    </div>
   )
 
   if (quiz.isPending)
@@ -69,8 +71,8 @@ export function QuizView({ onCancel, onSubmitted }: Props) {
   return (
     <>
       {back}
-      <Card className="sticky top-0 z-10 mb-4 p-4">
-        <div className="flex items-center justify-between gap-3 text-sm">
+      <Card className="sticky top-0 z-10 mb-6 p-4">
+        <div className="tabular flex items-center justify-between gap-3 text-sm">
           <span className="font-medium text-ink">
             {answered} of {questions.length} answered
           </span>
@@ -84,17 +86,17 @@ export function QuizView({ onCancel, onSubmitted }: Props) {
           aria-valuemax={questions.length}
           aria-valuenow={answered}
         >
-          <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-brand transition-[width] motion-reduce:transition-none" style={{ width: `${pct}%` }} />
         </div>
       </Card>
 
       <ol className="space-y-4">
         {questions.map((q, i) => (
           <li key={q.id}>
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <fieldset id={`question-${q.id}`} tabIndex={-1} className="focus:outline-none">
-                <legend className="font-medium text-ink">
-                  <span className="text-muted">{i + 1}.</span> {q.text}
+                <legend className="font-semibold text-ink">
+                  <span className="tabular text-muted">{i + 1}.</span> {q.text}
                 </legend>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {q.options.map((o) => {
@@ -102,7 +104,7 @@ export function QuizView({ onCancel, onSubmitted }: Props) {
                     return (
                       <label
                         key={o.id}
-                        className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm transition-colors ${
+                        className={`flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm transition-colors ${
                           checked ? 'border-brand bg-brand-50 text-ink' : 'border-line text-ink hover:bg-canvas'
                         }`}
                       >
@@ -128,7 +130,7 @@ export function QuizView({ onCancel, onSubmitted }: Props) {
       <div className="mt-6 space-y-3">
         {missing && <Alert>{missing}</Alert>}
         {submit.isError && <Alert>{errorMessage(submit.error)}</Alert>}
-        <Button onClick={onSubmit} loading={submit.isPending}>
+        <Button onClick={onSubmit} loading={submit.isPending} className="max-sm:w-full">
           <Send className="size-4" aria-hidden /> Submit assessment
         </Button>
         <p className="text-sm text-muted">You can take the assessment once per term.</p>

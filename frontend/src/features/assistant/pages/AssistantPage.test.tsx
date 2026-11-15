@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
@@ -176,5 +176,35 @@ describe('AssistantPage', () => {
     await user.click(within(confirm).getByRole('button', { name: 'Delete' }))
     await waitFor(() => expect(screen.queryByRole('button', { name: /^Finals/ })).not.toBeInTheDocument())
     expect(screen.getByText(/No conversations yet/)).toBeInTheDocument()
+  })
+  it('does not send when Enter only confirms an IME composition', async () => {
+    const { sent } = mockChat()
+    const { user } = renderAt('/student/assistant', { as: 'Student' })
+    const box = await screen.findByLabelText('Message')
+    await user.type(box, 'مرحبا')
+
+    fireEvent.keyDown(box, { key: 'Enter', isComposing: true })
+    fireEvent.keyDown(box, { key: 'Enter', keyCode: 229 })
+
+    expect(sent).toHaveLength(0)
+    expect(box).toHaveValue('مرحبا')
+
+    fireEvent.keyDown(box, { key: 'Enter' })
+    expect(await screen.findByText('Answer: مرحبا')).toBeInTheDocument()
+    expect(sent).toHaveLength(1)
+  })
+
+  it('hides "New chat" while the current chat is an empty draft', async () => {
+    // A fresh copy: the rename test edits the shared fixture in place.
+    mockChat([{ conversation: summary(1, 'Exam prep'), messages: [...examPrep.messages] }])
+    const { user } = renderAt('/student/assistant', { as: 'Student' })
+    const list = await screen.findByRole('list', { name: 'Your conversations' })
+    expect(screen.queryByRole('button', { name: 'New chat' })).not.toBeInTheDocument()
+
+    await user.click(within(list).getByRole('button', { name: /^Exam prep/ }))
+    await user.click(await screen.findByRole('button', { name: 'New chat' }))
+
+    expect(screen.getByRole('heading', { name: 'New conversation' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'New chat' })).not.toBeInTheDocument()
   })
 })

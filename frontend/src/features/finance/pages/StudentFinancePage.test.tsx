@@ -65,7 +65,7 @@ describe('StudentFinancePage', () => {
     mock(account([tuition, registration]))
     const { user } = renderAt('/student/finance', { as: 'Student' })
 
-    await user.click(await screen.findByRole('tab', { name: 'Completed (1)' }))
+    await user.click(await screen.findByRole('tab', { name: 'Completed, 1' }))
     const list = screen.getByRole('list', { name: 'Completed charges' })
     expect(within(list).getByRole('heading', { name: 'Spring 2026 registration fee' })).toBeInTheDocument()
     expect(within(list).getByText('Paid', { selector: 'span' })).toBeInTheDocument()
@@ -77,9 +77,10 @@ describe('StudentFinancePage', () => {
     const { user } = renderAt('/student/finance', { as: 'Student' })
 
     expect(await screen.findByText('Nothing to pay')).toBeInTheDocument()
-    expect(screen.getByText('Nothing overdue')).toBeInTheDocument()
+    expect(screen.getByText('No charges yet')).toBeInTheDocument()
+    expect(screen.getByText('No payments yet')).toBeInTheDocument()
     expect(screen.getByText('No upcoming payment')).toBeInTheDocument()
-    await user.click(screen.getByRole('tab', { name: 'Completed (0)' }))
+    await user.click(screen.getByRole('tab', { name: 'Completed, 0' }))
     expect(screen.getByText('No completed charges yet')).toBeInTheDocument()
   })
 

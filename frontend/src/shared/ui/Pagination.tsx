@@ -21,10 +21,10 @@ export function Pagination({ page, totalPages, totalCount, noun, onPage }: Props
       </span>
       {totalPages > 1 && (
         <div className="flex gap-2">
-          <Button variant="secondary" className="h-8 px-2.5" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>
             <ChevronLeft className="size-4" aria-hidden /> Previous
           </Button>
-          <Button variant="secondary" className="h-8 px-2.5" disabled={page >= totalPages} onClick={() => onPage(page + 1)}>
+          <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => onPage(page + 1)}>
             Next <ChevronRight className="size-4" aria-hidden />
           </Button>
         </div>

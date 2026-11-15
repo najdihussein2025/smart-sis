@@ -131,6 +131,31 @@ describe('UsersPage', () => {
     await user.type(screen.getByLabelText('Search'), 'zzz')
 
     expect(await screen.findByText('No users match')).toBeInTheDocument()
+
+    // The filtered-empty state offers a way back to the full list.
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(await screen.findByRole('rowheader', { name: /Demo Student/ })).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toHaveValue('')
+  })
+
+  it('sorts the rows by name and University ID, announcing the order', async () => {
+    mockUsers()
+    const { user } = renderAt('/admin/users', { as: 'Admin' })
+    await screen.findByRole('rowheader', { name: /Demo Student/ })
+    const names = () => screen.getAllByRole('rowheader').map((h) => h.querySelector('span')?.textContent)
+
+    await user.click(screen.getByRole('button', { name: 'University ID' }))
+    expect(screen.getByRole('columnheader', { name: /University ID/ })).toHaveAttribute('aria-sort', 'ascending')
+    expect(names()).toEqual(['Demo Admin', 'Demo Instructor', 'Demo Student'])
+
+    await user.click(screen.getByRole('button', { name: 'University ID' }))
+    expect(screen.getByRole('columnheader', { name: /University ID/ })).toHaveAttribute('aria-sort', 'descending')
+    expect(names()).toEqual(['Demo Student', 'Demo Instructor', 'Demo Admin'])
+
+    await user.click(screen.getByRole('button', { name: 'Name' }))
+    expect(names()).toEqual(['Demo Admin', 'Demo Instructor', 'Demo Student'])
+    // An admin row can't be changed and says so instead of leaving the cell empty.
+    expect(within(screen.getByRole('rowheader', { name: /Demo Admin/ }).closest('tr')!).getByText('Protected')).toBeInTheDocument()
   })
 
   it('shows an error with a retry button when the list fails', async () => {

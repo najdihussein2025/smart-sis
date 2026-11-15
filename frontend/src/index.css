@@ -29,9 +29,17 @@
   --color-warning-soft: #fbefdc;
   --color-danger: #b3362f;
   --color-danger-soft: #f9e5e3;
+  --color-info: #1f5a8a; /* 6.4:1 on info-soft: neutral setup notices that are not errors */
+  --color-info-soft: #e6f0f8;
 
-  --radius-card: 14px;
+  /* Sidebar: a step lighter than brand for hover / active rows, gold rule for the current page. */
+  --color-brand-700: #0e1830;
+  --color-nav-hover: rgb(255 255 255 / 0.06);
+  --color-nav-active: rgb(255 255 255 / 0.12);
+
+  --radius-card: 16px;
   --shadow-card: 0 1px 2px rgb(20 33 61 / 0.04), 0 4px 16px rgb(20 33 61 / 0.05);
+  --shadow-card-hover: 0 2px 4px rgb(20 33 61 / 0.06), 0 12px 28px rgb(20 33 61 / 0.1);
 }
 
 @layer base {
@@ -44,6 +52,28 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-focus;
   }
+}
+
+/* Numbers in tables and stat cards line up digit by digit. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* WCAG 2.3.3: users who ask the OS for less motion get no pulsing skeletons, slides or smooth scroll. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Soft edge on a row of tabs that scrolls sideways, so a cut-off tab reads as "more this way". */
+.scroll-fade-x {
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
 }
 
 /* Calendar popover (react-day-picker) in the app's colours. */

@@ -1,6 +1,7 @@
 import { ScrollText } from 'lucide-react'
 import { Badge } from '@/shared/ui/Badge'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { QueryError } from '@/shared/ui/QueryError'
 import { TableScroll } from '@/shared/ui/TableScroll'
@@ -10,12 +11,21 @@ import type { TranscriptCourse } from '../types'
 import { gpa } from './gpa'
 
 function Grade({ course }: { course: TranscriptCourse }) {
-  if (course.status === 'Enrolled') return <span className="text-muted">In progress</span>
+  if (course.status === 'Enrolled')
+    return (
+      <Badge tone="info" dot>
+        In progress
+      </Badge>
+    )
   return (
     <span className="inline-flex items-center gap-2">
       <span className="font-medium text-ink">{course.letterGrade}</span>
-      {course.status === 'DroppedAbsence' && <Badge tone="danger">Absences</Badge>}
-      {!course.countsInGpa && <Badge>Retaken</Badge>}
+      {course.status === 'DroppedAbsence' && (
+        <Badge tone="danger" dot>
+          Absences
+        </Badge>
+      )}
+      {!course.countsInGpa && <Badge tone="outline">Retaken</Badge>}
     </span>
   )
 }
@@ -47,30 +57,34 @@ export function TranscriptView() {
     )
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted">
+    <div className="space-y-6">
+      <p className="tabular text-sm text-muted">
         Cumulative GPA <span className="font-medium text-ink">{gpa(t.cumulativeGpa)}</span> · {t.creditsEarned} of{' '}
         {t.creditsAttempted} credits earned
       </p>
       {t.terms.map((term) => (
         <Card key={term.termId}>
           <section aria-label={term.termName}>
-            <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line p-4">
-              <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
-                {term.termName}
-                {term.isCurrent && <Badge tone="brand">Current</Badge>}
-              </h2>
-              <p className="text-sm text-muted">
-                Term GPA <span className="font-medium text-ink">{gpa(term.termGpa)}</span> · Cumulative{' '}
-                <span className="font-medium text-ink">{gpa(term.cumulativeGpa)}</span> · Credits {term.creditsEarned} /{' '}
-                {term.creditsAttempted}
-              </p>
-            </header>
+            <CardHeader
+              title={
+                <span className="flex flex-wrap items-center gap-2">
+                  {term.termName}
+                  {term.isCurrent && <Badge tone="brand">Current</Badge>}
+                </span>
+              }
+              description={
+                <span className="tabular">
+                  Term GPA <span className="font-medium text-ink">{gpa(term.termGpa)}</span> · Cumulative{' '}
+                  <span className="font-medium text-ink">{gpa(term.cumulativeGpa)}</span> · Credits {term.creditsEarned} /{' '}
+                  {term.creditsAttempted}
+                </span>
+              }
+            />
             <TableScroll>
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
                   <tr>
-                    <th scope="col" className="px-4 py-3 font-medium">Course</th>
+                    <th scope="col" className="px-4 py-3 font-medium sm:px-5">Course</th>
                     <th scope="col" className="px-4 py-3 font-medium">Credits</th>
                     <th scope="col" className="px-4 py-3 font-medium">Grade</th>
                     <th scope="col" className="px-4 py-3 font-medium">Points</th>
@@ -79,15 +93,14 @@ export function TranscriptView() {
                 <tbody className="divide-y divide-line">
                   {term.courses.map((c) => (
                     <tr key={`${c.courseCode}-${c.sectionCode}`}>
-                      <th scope="row" className="px-4 py-3 font-normal">
-                        <span className="block font-medium text-ink">{c.courseCode}</span>
-                        <span className="block text-muted">{c.courseName}</span>
+                      <th scope="row" className="px-4 py-3 font-normal sm:px-5">
+                        <span className="font-semibold text-ink">{c.courseCode}</span> <span className="text-ink">{c.courseName}</span>
                       </th>
-                      <td className="px-4 py-3 tabular-nums">{c.credits}</td>
+                      <td className="tabular px-4 py-3">{c.credits}</td>
                       <td className="px-4 py-3">
                         <Grade course={c} />
                       </td>
-                      <td className="px-4 py-3 tabular-nums">{c.gradePoints !== null ? c.gradePoints.toFixed(1) : '—'}</td>
+                      <td className="tabular px-4 py-3">{c.gradePoints !== null ? c.gradePoints.toFixed(1) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>

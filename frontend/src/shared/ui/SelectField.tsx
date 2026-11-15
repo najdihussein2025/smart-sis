@@ -28,7 +28,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         aria-invalid={!!error}
         aria-describedby={describedBy}
         className={cn(
-          'block w-full h-11 rounded-lg border bg-surface px-3 text-[15px] text-ink disabled:bg-canvas disabled:text-muted',
+          'block w-full h-11 rounded-lg border bg-surface px-3 text-base sm:text-[15px] text-ink disabled:bg-canvas disabled:text-muted',
           'focus:outline-none focus:ring-2 focus:ring-accent/40',
           error ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-brand',
           className,

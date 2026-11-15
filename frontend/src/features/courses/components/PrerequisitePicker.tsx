@@ -63,7 +63,7 @@ export function PrerequisitePicker({ value, onChange, excludeId, error }: Props)
           autoComplete="off"
           aria-invalid={!!error}
           className={cn(
-            'block w-full h-11 rounded-lg border bg-surface pl-10 pr-3 text-[15px] text-ink placeholder:text-muted',
+            'block w-full h-11 rounded-lg border bg-surface pl-10 pr-3 text-base sm:text-[15px] text-ink placeholder:text-muted',
             'focus:outline-none focus:ring-2 focus:ring-accent/40',
             error ? 'border-danger' : 'border-line-strong focus:border-brand',
           )}

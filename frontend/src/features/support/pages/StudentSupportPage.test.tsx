@@ -122,9 +122,21 @@ describe('StudentSupportPage', () => {
 
   it('shows an empty state with a way to submit the first request', async () => {
     mockSupport([])
-    renderAt('/student/support', { as: 'Student' })
+    const { user } = renderAt('/student/support', { as: 'Student' })
     expect(await screen.findByText('No support requests yet')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: /New request/ })).toHaveLength(2)
+    // One call to action only: the empty state's. No status filter over an empty list either.
+    expect(screen.getAllByRole('button', { name: /New request/ })).toHaveLength(1)
+    expect(screen.queryByLabelText('Status')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /New request/ }))
+    expect(screen.getByRole('dialog', { name: 'New support request' })).toBeInTheDocument()
+  })
+
+  it('keeps the header "New request" and the filter when there are requests', async () => {
+    mockSupport([summary(1, 'Cannot add CSC 310')])
+    renderAt('/student/support', { as: 'Student' })
+    await screen.findByRole('list', { name: 'Support requests' })
+    expect(screen.getAllByRole('button', { name: /New request/ })).toHaveLength(1)
+    expect(screen.getByLabelText('Status')).toBeInTheDocument()
   })
 
   it('shows an error with a retry button when the list fails', async () => {
