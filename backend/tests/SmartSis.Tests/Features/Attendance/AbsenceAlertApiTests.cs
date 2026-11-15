@@ -41,7 +41,6 @@ public sealed class AbsenceAlertApiTests(SisApiFactory factory) : IClassFixture<
     }
 
     [Fact]
-    [Trait("TC", "TC_39")]
     [Trait("Rule", "A2")]
     public async Task EighthAbsence_SendsWarning_EmailAndNotification_Once()
     {
@@ -79,7 +78,6 @@ public sealed class AbsenceAlertApiTests(SisApiFactory factory) : IClassFixture<
     }
 
     [Fact]
-    [Trait("TC", "TC_40")]
     [Trait("Rule", "A2")]
     public async Task NinthAbsence_SendsLimitAlert_StillEnrolled()
     {
@@ -98,7 +96,6 @@ public sealed class AbsenceAlertApiTests(SisApiFactory factory) : IClassFixture<
     }
 
     [Fact]
-    [Trait("TC", "TC_41")]
     [Trait("Rule", "A3")]
     public async Task TenthAbsence_AutoDrops_WithFCountingInGpa_AndLeavesTheRoster()
     {

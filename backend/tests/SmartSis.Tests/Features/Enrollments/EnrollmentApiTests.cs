@@ -90,6 +90,7 @@ public sealed class EnrollmentApiTests(SisApiFactory factory) : IClassFixture<Si
 
     [Fact]
     [Trait("Rule", "E4")]
+    [Trait("TC", "TC_54")]
     public async Task Enroll_SecondSectionOfSameCourse_Fails()
     {
         var client = await StudentAsync();
@@ -143,7 +144,7 @@ public sealed class EnrollmentApiTests(SisApiFactory factory) : IClassFixture<Si
     }
 
     [Fact]
-    [Trait("TC", "TC_63")]
+    [Trait("TC", "TC_64")]
     public async Task Swap_ToOtherSectionOfSameCourse_MovesTheEnrollment()
     {
         var client = await StudentAsync();
@@ -158,6 +159,23 @@ public sealed class EnrollmentApiTests(SisApiFactory factory) : IClassFixture<Si
         Assert.Equal("B", Assert.Single((await res.ReadAsync<MyEnrollmentsDto>()).Items).SectionCode);
         await factory.WithDbAsync(async db =>
             Assert.True(await db.Set<EnrollmentAction>().AnyAsync(x => x.Action == EnrollmentActionType.Swap && x.FromSectionId == a && x.ToSectionId == b)));
+    }
+
+    [Fact]
+    [Trait("TC", "TC_66")]
+    public async Task Swap_IntoCourseWithMissingPrerequisite_Returns409NamingIt_AndKeepsTheOldSection()
+    {
+        var client = await StudentAsync();
+        var mat201 = await factory.SectionIdAsync("MAT 201");
+        var csc210 = await factory.SectionIdAsync("CSC 210", "A");
+        await EnrollAsync(client, mat201);
+
+        var res = await client.PostAsJsonAsync("/api/enrollment/swap", new SwapRequest(mat201, csc210));
+
+        Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        Assert.Contains("CSC 101", await res.Content.ReadAsStringAsync());
+        var mine = await (await client.GetAsync("/api/enrollment/my")).ReadAsync<MyEnrollmentsDto>();
+        Assert.Equal("MAT 201", Assert.Single(mine.Items).CourseCode);
     }
 
     [Fact]

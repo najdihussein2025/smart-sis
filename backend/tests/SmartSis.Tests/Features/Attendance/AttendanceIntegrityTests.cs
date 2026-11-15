@@ -17,7 +17,7 @@ public sealed class AttendanceIntegrityTests(SisApiFactory factory) : IClassFixt
 {
     [Fact]
     [Trait("Rule", "A4")]
-    [Trait("TC", "TC_38")]
+    [Trait("TC", "TC_41")]
     public async Task Model_SessionsAreUniquePerMeetingAndDate()
     {
         await factory.WithDbAsync(db =>
@@ -55,7 +55,6 @@ public sealed class AttendanceIntegrityTests(SisApiFactory factory) : IClassFixt
     }
 
     [Fact]
-    [Trait("TC", "TC_41")]
     [Trait("Rule", "A3")]
     public async Task FourMoreAbsences_ThroughTheApi_WarnOnce_AlertOnce_ThenDrop()
     {

@@ -44,7 +44,7 @@ public sealed class AttendanceApiTests(SisApiFactory factory) : IClassFixture<Si
     }
 
     [Fact]
-    [Trait("TC", "TC_36")]
+    [Trait("TC", "TC_37")]
     public async Task Sheet_BeforeSubmission_ListsEnrolledStudents_Unmarked()
     {
         var (client, meetingId, date) = await InstructorOnCsc101Async();
@@ -59,7 +59,7 @@ public sealed class AttendanceApiTests(SisApiFactory factory) : IClassFixture<Si
     }
 
     [Fact]
-    [Trait("TC", "TC_37")]
+    [Trait("TC", "TC_40")]
     public async Task Submit_SavesEveryMark_AndTheSheetShowsThem()
     {
         var (client, meetingId, date) = await InstructorOnCsc101Async();
@@ -85,7 +85,6 @@ public sealed class AttendanceApiTests(SisApiFactory factory) : IClassFixture<Si
     }
 
     [Fact]
-    [Trait("TC", "TC_38")]
     [Trait("Rule", "A4")]
     public async Task Submit_SameMeetingAndDateTwice_Returns409_AndKeepsTheFirst()
     {
@@ -199,7 +198,6 @@ public sealed class AttendanceApiTests(SisApiFactory factory) : IClassFixture<Si
     }
 
     [Fact]
-    [Trait("TC", "TC_43")]
     [Trait("SR", "SR-22")]
     public async Task AnotherInstructorsSection_Returns403()
     {
