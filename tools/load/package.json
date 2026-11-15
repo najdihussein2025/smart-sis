@@ -1,0 +1,12 @@
+{
+  "name": "smart-sis-load",
+  "private": true,
+  "type": "module",
+  "description": "T76 load test for the Smart SIS API (autocannon). Simulated data only (SR-23).",
+  "scripts": {
+    "load": "node loadtest.mjs"
+  },
+  "dependencies": {
+    "autocannon": "7.15.0"
+  }
+}
