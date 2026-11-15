@@ -444,3 +444,14 @@ no migration). Covered by `UtcDateTimeConverterTests` and the e2e "create a term
 `docs/Smart-SIS-Test-Cases.xlsx` is not in the repository, so the official TC_01–TC_114 run is blocked. We did not
 reconstruct its contents. `docs/test-results.md` lists the TC ids the code already maps and a requirements-based
 regression from PROJECT.md §3/§4 instead.
+
+## T76 Load test and performance
+- `tools/load/` (autocannon, run with Node) measures login, 12 read endpoints and a concurrent seat race against a running
+  API. Results and method: `docs/performance.md`.
+- Seat race (E6) holds under load: 60 or 100 simultaneous enrolls into a 5 or 10 seat section always give exactly
+  `capacity` enrollments, no 5xx.
+- 50 connections: 0 % errors, read endpoints p99 under 90 ms on a developer machine with a small dataset.
+- T75's benefit is **not visible** on the small dev dataset (before/after within noise, slightly slower after). We
+  report that as measured and do not claim a speed-up; production-size data was not tested.
+- Benchmarks need a Release build and a throw-away database; earlier exploratory runs (cause unknown, possibly a Debug build or
+  a busy machine) were about 10x slower and were discarded.
