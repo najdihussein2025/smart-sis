@@ -54,8 +54,8 @@ Before = commit `cadd778` (parent of T75), after = current main. Release builds,
 
 **Reading this honestly:** on the small dev dataset T75 gives **no measurable improvement**; the "after" run is 5-40 %
 slower on most rows. We do not claim T75 made these endpoints faster. Likely reasons: with only dozens of rows per table
-SQL Server scans are already cheap, so indexes and `AsNoTracking` cannot help much; the "before" run was done first and
-the "after" database/JIT state differed; single runs on a shared desktop vary by 10-30 %. T75's value (bounded page size,
+SQL Server scans are already cheap, so indexes and `AsNoTracking` cannot help much; run order, database state and JIT warm-up differed between the two runs;
+single runs on a shared desktop vary by 10-30 %. T75's value (bounded page size,
 no unbounded lists, indexes for large tables) is aimed at production-size data, which we did not generate. All rows
 had 0 % errors in both builds.
 

@@ -453,5 +453,5 @@ regression from PROJECT.md §3/§4 instead.
 - 50 connections: 0 % errors, read endpoints p99 under 90 ms on a developer machine with a small dataset.
 - T75's benefit is **not visible** on the small dev dataset (before/after within noise, slightly slower after). We
   report that as measured and do not claim a speed-up; production-size data was not tested.
-- Benchmarks need a Release build and a throw-away database: Debug builds and a shared desktop gave misleading, much
-  slower numbers.
+- Benchmarks need a Release build and a throw-away database; earlier exploratory runs (cause unknown, possibly a Debug build or
+  a busy machine) were about 10x slower and were discarded.
