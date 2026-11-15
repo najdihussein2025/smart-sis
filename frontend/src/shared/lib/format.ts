@@ -1,12 +1,13 @@
-const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-const dateTimeFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-const dateOnlyFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+// Fixed month names: en-GB's CLDR data writes September as "Sept", which reads like a typo next to "Oct" and "Nov".
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const two = (n: number) => String(n).padStart(2, '0')
 const moneyFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
 /** API dates are UTC ISO strings (or yyyy-mm-dd for DateOnly). */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
-  return dateFmt.format(new Date(value))
+  const d = new Date(value)
+  return `${two(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
 }
 
 export function formatMoney(value: number): string {
@@ -25,13 +26,15 @@ export function initials(fullName: string): string {
 /** A DateOnly from the API ("2026-09-01"). Formatted in UTC so it never shifts a day in other time zones. */
 export function formatDateOnly(value: string | null | undefined): string {
   if (!value) return '—'
-  return dateOnlyFmt.format(new Date(`${value}T00:00:00Z`))
+  const d = new Date(`${value}T00:00:00Z`)
+  return `${two(d.getUTCDate())} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
-/** A UTC instant from the API, shown in the viewer's local time ("01 Sept, 08:00"). */
+/** A UTC instant from the API, shown in the viewer's local time ("01 Sep, 08:00"). */
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—'
-  return dateTimeFmt.format(new Date(value))
+  const d = new Date(value)
+  return `${two(d.getDate())} ${MONTHS[d.getMonth()]}, ${two(d.getHours())}:${two(d.getMinutes())}`
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')

@@ -35,8 +35,13 @@ const sections: AnnouncementSection[] = [
   { id: 12, label: 'CSC 210 A', courseName: 'Data Structures', termName: 'Fall 2026', enrolledCount: 3 },
 ]
 
+/** The feed, plus empty management lists (admins and instructors land on those first). */
 function mockFeed(items: Announcement[]) {
-  server.use(http.get('/api/announcements', () => HttpResponse.json(paged(items, 1, 10))))
+  server.use(
+    http.get('/api/announcements', () => HttpResponse.json(paged(items, 1, 10))),
+    http.get('/api/admin/announcements', () => HttpResponse.json(paged([], 1, 10))),
+    http.get('/api/instructor/announcements', () => HttpResponse.json(paged([], 1, 10))),
+  )
 }
 
 describe('AnnouncementsPage', () => {
@@ -112,9 +117,9 @@ describe('AnnouncementsPage', () => {
       }),
     )
     const { user } = renderAt('/admin/announcements', { as: 'Admin' })
-    await screen.findByRole('article', { name: 'Welcome to the new Smart SIS' })
+    expect(await screen.findByText('Nothing posted here')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /New announcement/ }))
+    await user.click(screen.getAllByRole('button', { name: /New announcement/ })[0]!)
     const dialog = screen.getByRole('dialog', { name: 'New announcement' })
     await user.type(within(dialog).getByLabelText('Title'), 'Campus closed on Monday')
     await user.type(within(dialog).getByLabelText('Message'), 'Public holiday.')
@@ -244,9 +249,11 @@ describe('AnnouncementsPage', () => {
       }),
     )
     const { user } = renderAt('/admin/announcements', { as: 'Admin' })
-    await screen.findByRole('article', { name: 'Welcome to the new Smart SIS' })
 
-    await user.click(screen.getByRole('tab', { name: 'All posts' }))
+    // Admins land on the management tab; the feed is second.
+    const tabs = await screen.findAllByRole('tab')
+    expect(tabs.map((t) => t.textContent)).toEqual(['All posts', 'Feed'])
+    expect(screen.getByRole('tab', { name: 'All posts' })).toHaveAttribute('aria-selected', 'true')
     const scheduled = await screen.findByRole('article', { name: 'Midterm exam schedule' })
     expect(within(scheduled).getByText('Scheduled')).toBeInTheDocument()
     expect(within(screen.getByRole('article', { name: 'Library closed for inventory' })).getByText('Expired')).toBeInTheDocument()
@@ -262,5 +269,19 @@ describe('AnnouncementsPage', () => {
     expect(await screen.findByText('"Library closed for inventory" was deleted.')).toBeInTheDocument()
     expect(deleted).toEqual(['5'])
     expect(await screen.findByText('Nothing posted here')).toBeInTheDocument()
+  })
+
+  it('gives admins a neutral empty feed and a management empty state with the post button', async () => {
+    mockFeed([])
+    const { user } = renderAt('/admin/announcements', { as: 'Admin' })
+
+    expect(await screen.findByText('Nothing posted here')).toBeInTheDocument()
+    expect(screen.getByText('Post one with “New announcement”.')).toBeInTheDocument()
+    // The empty state carries the button it names, next to the one in the page header.
+    expect(screen.getAllByRole('button', { name: /New announcement/ })).toHaveLength(2)
+
+    await user.click(screen.getByRole('tab', { name: 'Feed' }))
+    expect(await screen.findByText('No announcements for you yet')).toBeInTheDocument()
+    expect(screen.queryByText(/Post one with/)).not.toBeInTheDocument()
   })
 })

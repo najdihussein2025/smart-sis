@@ -133,7 +133,7 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
         <div
           aria-hidden
           data-testid="date-template"
-          className="pointer-events-none absolute inset-0 flex items-center whitespace-pre rounded-lg border border-transparent bg-surface pl-3.5 text-[15px]"
+          className="pointer-events-none absolute inset-0 flex items-center whitespace-pre rounded-lg border border-transparent bg-surface pl-3.5 text-base sm:text-[15px]"
         >
           <span className="text-transparent">{text}</span>
           <span className="text-muted">{dmyTemplateRest(text)}</span>
@@ -158,7 +158,7 @@ export function DateField({ label, value, onChange, onBlur, min, max, error, inv
           aria-invalid={isInvalid}
           aria-describedby={describedBy}
           className={cn(
-            'relative block w-full h-11 rounded-lg border bg-transparent pl-3.5 pr-11 text-[15px] text-ink',
+            'relative block w-full h-11 rounded-lg border bg-transparent pl-3.5 pr-11 text-base sm:text-[15px] text-ink',
             'transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40',
             isInvalid ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-brand',
           )}

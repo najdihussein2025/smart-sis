@@ -1,9 +1,10 @@
-import { Compass, Map as MapIcon, Sparkles } from 'lucide-react'
+import { BookOpen, Compass, Map as MapIcon, Sparkles, Trophy } from 'lucide-react'
 import { errorMessage } from '@/shared/api/problem'
 import { Alert } from '@/shared/ui/Alert'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { QueryError } from '@/shared/ui/QueryError'
 import { TableSkeleton } from '@/shared/ui/TableSkeleton'
@@ -45,35 +46,33 @@ export function RecommendationsView({ onViewRoadmap }: Props) {
   return (
     <div className="space-y-6">
       <Card>
-        <div className="border-b border-line px-5 py-4">
-          <h2 className="font-display text-xl font-semibold text-ink">Your top careers</h2>
-          <p className="mt-0.5 text-sm text-muted">
-            From your assessment in {r.termName}
-            {r.usesGrades ? ' and your grades in related courses' : ''}.
-          </p>
-        </div>
+        <CardHeader
+          title="Your top careers"
+          icon={Trophy}
+          description={`From your assessment in ${r.termName}${r.usesGrades ? ' and your grades in related courses' : ''}.`}
+        />
         <ol className="divide-y divide-line" aria-label="Recommended careers">
           {r.careers.map((c, i) => (
-            <li key={c.careerId} className="space-y-2 px-5 py-4">
+            <li key={c.careerId} className="space-y-2 px-4 py-4 sm:px-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-medium text-ink">
-                    <span className="text-muted">{i + 1}.</span> {c.name}
+                  <h3 className="font-semibold text-ink">
+                    <span className="tabular text-muted">{i + 1}.</span> {c.name}
                   </h3>
                   {c.description && <p className="text-sm text-muted">{c.description}</p>}
                 </div>
-                <Button variant="secondary" className="h-9" onClick={() => onViewRoadmap(c.careerId)} aria-label={`View the ${c.name} roadmap`}>
+                <Button variant="secondary" size="sm" onClick={() => onViewRoadmap(c.careerId)} aria-label={`View the ${c.name} roadmap`}>
                   <MapIcon className="size-4" aria-hidden /> Roadmap
                 </Button>
               </div>
               <PercentBar value={c.matchPct} label={`${c.name} match`} />
-              <p className="text-xs text-muted">
+              <p className="tabular text-xs text-muted">
                 Assessment {c.quizPct}%{c.gradePct !== null ? ` · Grades ${c.gradePct}%` : ''}
               </p>
               {c.topTraits.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {c.topTraits.map((t) => (
-                    <Badge key={t} tone="brand">
+                    <Badge key={t} tone="outline">
                       {t}
                     </Badge>
                   ))}
@@ -82,7 +81,7 @@ export function RecommendationsView({ onViewRoadmap }: Props) {
             </li>
           ))}
         </ol>
-        <div className="border-t border-line bg-canvas/60 px-5 py-4">
+        <div className="border-t border-line bg-canvas/60 px-4 py-4 sm:px-5">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <Sparkles className="size-4 text-accent-ink" aria-hidden /> Why these careers
           </h3>
@@ -94,9 +93,9 @@ export function RecommendationsView({ onViewRoadmap }: Props) {
       </Card>
 
       <Card>
-        <h2 className="border-b border-line px-5 py-4 font-medium text-ink">Suggested courses</h2>
+        <CardHeader title="Suggested courses" icon={BookOpen} />
         {add.isError && (
-          <div className="px-5 pt-4">
+          <div className="px-4 pt-4 sm:px-5">
             <Alert>{errorMessage(add.error)}</Alert>
           </div>
         )}
@@ -107,10 +106,10 @@ export function RecommendationsView({ onViewRoadmap }: Props) {
         ) : (
           <ul className="divide-y divide-line" aria-label="Suggested courses">
             {r.suggestedCourses.map((c) => (
-              <li key={c.courseId} className="space-y-2 px-5 py-4">
-                <p>
-                  <span className="font-medium text-ink">{c.code}</span> <span className="text-ink">{c.name}</span>{' '}
-                  <span className="text-sm text-muted">· {c.credits} credits</span>
+              <li key={c.courseId} className="space-y-2 px-4 py-4 sm:px-5">
+                <p className="text-ink">
+                  <span className="font-semibold">{c.code}</span> <span>{c.name}</span>{' '}
+                  <span className="tabular text-sm whitespace-nowrap text-muted">· {c.credits} credits</span>
                 </p>
                 <p className="text-xs text-muted">For {c.careers.join(', ')}</p>
                 <SectionCartButtons

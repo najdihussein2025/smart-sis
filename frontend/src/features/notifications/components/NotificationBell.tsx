@@ -59,7 +59,7 @@ export function NotificationBell() {
       <button
         ref={button}
         type="button"
-        className="relative rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-ink"
+        className="relative grid size-11 cursor-pointer place-items-center rounded-lg text-muted hover:bg-brand-50 hover:text-ink sm:size-10"
         aria-label={count > 0 ? `Notifications, ${count} unread` : 'Notifications'}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -69,7 +69,7 @@ export function NotificationBell() {
         {count > 0 && (
           <span
             aria-hidden
-            className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-[11px] font-semibold leading-none text-white"
+            className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-xs font-semibold leading-none text-white"
           >
             {badge}
           </span>
@@ -87,7 +87,7 @@ export function NotificationBell() {
             <h2 className="font-display text-base font-semibold text-ink">Notifications</h2>
             <Button
               variant="ghost"
-              className="h-8 px-2.5"
+              size="sm"
               disabled={count === 0}
               loading={markAll.isPending}
               onClick={() => markAll.mutate()}
@@ -106,7 +106,7 @@ export function NotificationBell() {
                 <p role="alert" className="text-danger">
                   {errorMessage(latest.error, 'Could not load your notifications.')}
                 </p>
-                <Button variant="secondary" className="h-8 px-2.5" onClick={() => latest.refetch()}>
+                <Button variant="secondary" size="sm" onClick={() => latest.refetch()}>
                   Try again
                 </Button>
               </div>

@@ -36,13 +36,11 @@ public sealed class EnrollmentPolicyTests
 
     [Fact]
     [Trait("Rule", "E2")]
-    [Trait("TC", "TC_54")]
     public void CheckEnroll_ExactlyAtCap_Passes() =>
         EnrollmentPolicy.CheckEnroll(State(enrolled: [Held(1, 1, "CSC 101", 15)]), Candidate(credits: 3));
 
     [Fact]
     [Trait("Rule", "E2")]
-    [Trait("TC", "TC_54")]
     public void CheckEnroll_OneOverCap_Throws()
     {
         var ex = Assert.Throws<BusinessRuleException>(() =>
@@ -75,6 +73,7 @@ public sealed class EnrollmentPolicyTests
 
     [Fact]
     [Trait("Rule", "E4")]
+    [Trait("TC", "TC_54")]
     public void CheckEnroll_OtherSectionOfSameCourse_Throws() =>
         Assert.Equal(EnrollmentPolicy.SameCourse,
             Code(() => EnrollmentPolicy.CheckEnroll(State(enrolled: [Held(99, 10, "CSC 310")]), Candidate(meetings: [Mon(18, 0, 60)]))));

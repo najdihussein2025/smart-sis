@@ -52,8 +52,11 @@ describe('CartPage', () => {
     expect(within(list).getByText('CSC 101 A')).toBeInTheDocument()
     expect(within(list).getByText('MAT 201 A')).toBeInTheDocument()
     expect(within(list).getByText('Full')).toBeInTheDocument()
-    expect(screen.getByText('9 credits')).toBeInTheDocument()
-    expect(screen.getByText('18 credits per term')).toBeInTheDocument()
+    // One credit meter: enrolled + cart against the cap, in words and as a bar.
+    const meter = screen.getByRole('meter', { name: 'Credits used' })
+    expect(meter).toHaveAttribute('aria-valuetext', '9 enrolled and 6 in cart, 15 of 18 credits')
+    expect(screen.getByText('of 18 credits', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('3 left')).toBeInTheDocument()
   })
 
   it('removes a section', async () => {
@@ -66,11 +69,12 @@ describe('CartPage', () => {
     expect(screen.getByText('CSC 101 A')).toBeInTheDocument()
   })
 
-  it('shows an empty cart with a link to the catalog', async () => {
+  it('shows an empty cart with a "Browse catalog" action and no Enroll button', async () => {
     mockCart([])
     renderAt('/student/cart', { as: 'Student' })
     expect(await screen.findByText('Your cart is empty')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'course catalog' })).toHaveAttribute('href', '/student/courses')
+    expect(screen.queryByRole('button', { name: /^Enroll in/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Browse catalog' })).toHaveAttribute('href', '/student/courses')
   })
 
   it('shows the error with a retry button', async () => {
@@ -81,6 +85,48 @@ describe('CartPage', () => {
     )
     renderAt('/student/cart', { as: 'Student' })
     expect(await screen.findByText('Something went wrong on our side. Please try again in a moment.')).toBeInTheDocument()
+  })
+
+  // Final regression (T80): official test cases without a web test yet.
+  it('TC_53: the Enroll button is disabled until a section is ticked, and again when all are unticked', async () => {
+    mockCart([cartItem(1, 'CSC 101'), cartItem(4, 'MAT 201')])
+    const { user } = renderAt('/student/cart', { as: 'Student' })
+
+    const enrollButton = await screen.findByRole('button', { name: /^Enroll in/ })
+    expect(enrollButton).toBeDisabled()
+    await user.click(screen.getByRole('checkbox', { name: /select all/i }))
+    expect(screen.getByRole('button', { name: 'Enroll in 2 sections' })).toBeEnabled()
+    await user.click(screen.getByRole('checkbox', { name: /select all/i }))
+    expect(screen.getByRole('button', { name: /^Enroll in/ })).toBeDisabled()
+  })
+
+  it('TC_61 and TC_62: cancelling the swap dialog closes it without calling the API and keeps the cart', async () => {
+    mockCart([cartItem(22, 'CSC 210', { courseId: 2, sectionCode: 'B' })], { enrolled: [enrolledCsc210A] })
+    let swaps = 0
+    server.use(http.post('/api/enrollment/swap', () => (swaps++, HttpResponse.json(mine([])))))
+    const { user } = renderAt('/student/cart', { as: 'Student' })
+
+    await user.click(await screen.findByRole('button', { name: 'Swap into CSC 210 B' }))
+    const dialog = screen.getByRole('dialog', { name: 'Swap into CSC 210 B' })
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(swaps).toBe(0)
+    expect(screen.getByText('CSC 210 B')).toBeInTheDocument()
+  })
+
+  it('TC_68: an empty cart offers no swap and links to the catalog', async () => {
+    mockCart([], { enrolled: [enrolledCsc210A] })
+    renderAt('/student/cart', { as: 'Student' })
+    expect(await screen.findByText('Your cart is empty')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Swap into/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Browse catalog' })).toHaveAttribute('href', '/student/courses')
+  })
+
+  it('TC_72: with no enrolled courses the enrolled list says so', async () => {
+    mockCart([])
+    renderAt('/student/cart', { as: 'Student' })
+    expect(await screen.findByText('No courses yet')).toBeInTheDocument()
   })
 
   it('enrolls the chosen sections and shows each rule failure with its reason', async () => {

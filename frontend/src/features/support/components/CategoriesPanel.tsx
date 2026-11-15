@@ -9,6 +9,7 @@ import { Alert } from '@/shared/ui/Alert'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { Dialog } from '@/shared/ui/Dialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -70,7 +71,12 @@ export function CategoriesPanel() {
     <div className="space-y-4">
       {saved.message && <Alert tone="success">{saved.message}</Alert>}
       <Card>
-        <form onSubmit={onAdd} noValidate className="flex flex-wrap items-start gap-3 border-b border-line p-4" aria-label="Add a category">
+        <CardHeader
+          title="Categories"
+          icon={Tags}
+          description="Students pick one when they submit a request. A category in use can only be renamed."
+        />
+        <form onSubmit={onAdd} noValidate className="flex flex-wrap items-start gap-3 border-b border-line p-4 sm:px-5" aria-label="Add a category">
           <div className="min-w-0 flex-1 basis-60">
             <TextField label="New category" maxLength={100} error={formState.errors.name?.message} {...register('name')} />
           </div>
@@ -95,18 +101,18 @@ export function CategoriesPanel() {
         ) : (
           <ul className="divide-y divide-line" aria-label="Support categories">
             {categories.data.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-canvas/50 sm:px-5">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-ink">{c.name}</span>
-                  <Badge>
+                  <Badge tone="outline">
                     {c.requestCount} {c.requestCount === 1 ? 'request' : 'requests'}
                   </Badge>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" className="h-8 px-2.5" onClick={() => setRenaming(c)} aria-label={`Rename ${c.name}`}>
+                  <Button variant="ghost" size="sm" onClick={() => setRenaming(c)} aria-label={`Rename ${c.name}`}>
                     <Pencil className="size-4" aria-hidden /> Rename
                   </Button>
-                  <Button variant="ghost" className="h-8 px-2.5" onClick={() => setDeleting(c)} aria-label={`Delete ${c.name}`}>
+                  <Button variant="danger-ghost" size="sm" onClick={() => setDeleting(c)} aria-label={`Delete ${c.name}`}>
                     <Trash2 className="size-4" aria-hidden /> Delete
                   </Button>
                 </div>

@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams } from 'react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, LifeBuoy } from 'lucide-react'
 import { formatDateTime } from '@/shared/lib/format'
 import { Alert } from '@/shared/ui/Alert'
 import { Card } from '@/shared/ui/Card'
@@ -43,20 +43,20 @@ export function StudentSupportRequestPage() {
   return (
     <>
       {back}
-      <PageHeader eyebrow={r.categoryName} title={r.subject}>
+      <PageHeader eyebrow={r.categoryName} title={r.subject} icon={LifeBuoy}>
         <span className="inline-flex flex-wrap items-center gap-2">
           <StatusBadge status={r.status} />
-          <span>Submitted {formatDateTime(r.createdAt)}</span>
+          <span className="tabular">Submitted {formatDateTime(r.createdAt)}</span>
         </span>
       </PageHeader>
 
       {submitted && (
-        <div className="mb-4">
+        <div className="mb-6">
           <Alert tone="success">Request submitted. You’ll get a notification and an email when an administrator answers.</Alert>
         </div>
       )}
 
-      <Card className="space-y-6 p-5">
+      <Card className="space-y-6 p-4 sm:p-5">
         <Thread
           description={r.description}
           createdAt={r.createdAt}
@@ -67,7 +67,7 @@ export function StudentSupportRequestPage() {
         />
         <div className="border-t border-line pt-5">
           {r.status === 'Closed' ? (
-            <p className="text-sm text-muted">This request is closed. Submit a new request if you still need help.</p>
+            <Alert tone="info">This request is closed. Submit a new request if you still need help.</Alert>
           ) : (
             <ReplyForm
               send={(body) => reply.mutateAsync(body)}

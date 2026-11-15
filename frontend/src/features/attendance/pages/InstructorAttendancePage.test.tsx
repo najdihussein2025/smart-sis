@@ -59,6 +59,14 @@ async function openMondaySession() {
   return view
 }
 
+/** Submit asks first (attendance can't be changed afterwards); confirm in the dialog. */
+async function submitAndConfirm(user: Awaited<ReturnType<typeof openMondaySession>>['user']) {
+  await user.click(screen.getByRole('button', { name: 'Submit attendance' }))
+  const dialog = screen.getByRole('dialog', { name: 'Submit attendance for CSC 101 A?' })
+  await user.click(within(dialog).getByRole('button', { name: 'Submit' }))
+  return dialog
+}
+
 describe('InstructorAttendancePage', () => {
   it('loads the roster for the latest Monday, everyone present by default, and submits the marks', async () => {
     const requested = mockApi()
@@ -85,7 +93,12 @@ describe('InstructorAttendancePage', () => {
 
     await user.click(within(row5).getByRole('radio', { name: 'Absent' }))
     expect(screen.getByText(/2 present, 1 absent/)).toBeInTheDocument()
+    expect(within(list).getByText('Absent today puts this student one away from the limit.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Submit attendance' }))
+    const dialog = screen.getByRole('dialog', { name: 'Submit attendance for CSC 101 A?' })
+    expect(within(dialog).getByText(/2 present, 1 absent/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Demo Student 5').closest('li')).toHaveTextContent('Demo Student 5 gets a warning (8 of 9 absences)')
+    await user.click(within(dialog).getByRole('button', { name: 'Submit' }))
 
     expect(await screen.findByText('Attendance saved for CSC 101 A on 09/11/2026: 2 present, 1 absent.')).toBeInTheDocument()
     expect(sent).toEqual({
@@ -115,7 +128,7 @@ describe('InstructorAttendancePage', () => {
     await screen.findByRole('list', { name: 'Students of CSC 101 A' })
 
     await user.click(screen.getByRole('button', { name: 'Mark all absent' }))
-    await user.click(screen.getByRole('button', { name: 'Submit attendance' }))
+    await submitAndConfirm(user)
 
     await waitFor(() => expect(sent?.records.every((r) => r.status === 'Absent')).toBe(true))
   })
@@ -147,9 +160,9 @@ describe('InstructorAttendancePage', () => {
     const { user } = await openMondaySession()
     await screen.findByRole('list', { name: 'Students of CSC 101 A' })
 
-    await user.click(screen.getByRole('button', { name: 'Submit attendance' }))
+    const dialog = await submitAndConfirm(user)
 
-    expect(await screen.findByText('Attendance for CSC 101 A on 09/11/2026 at 08:00 was already submitted.')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Attendance for CSC 101 A on 09/11/2026 at 08:00 was already submitted.')).toBeInTheDocument()
   })
 
   it('shows a session that was already taken read-only, and opens it from the history', async () => {
@@ -173,6 +186,74 @@ describe('InstructorAttendancePage', () => {
     expect(within(list).getByText('Absent')).toBeInTheDocument()
     expect(within(list).queryByRole('radio')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Submit attendance' })).not.toBeInTheDocument()
+  })
+
+  it('warns in the confirm, by name, about a student this submission drops from the course', async () => {
+    mockApi({
+      sheet: (date) => sheetFor(date, { students: [...students.slice(0, 2), { ...students[2]!, absences: 9 }] }),
+    })
+    const { user } = await openMondaySession()
+    const list = await screen.findByRole('list', { name: 'Students of CSC 101 A' })
+    const row6 = within(list).getByRole('group', { name: 'Attendance of Demo Student 6' })
+    // A5 standing per row: 9 of 9 is Critical.
+    expect(within(list).getAllByText('Critical').length).toBeGreaterThan(0)
+
+    await user.click(within(row6).getByRole('radio', { name: 'Absent' }))
+    expect(within(list).getByText('Absent today drops this student from the course (F).')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Submit attendance' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Submit attendance for CSC 101 A?' })
+    const warnings = within(dialog).getByRole('region', { name: 'Absence alerts this submission sends' })
+    expect(within(warnings).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(warnings).getByRole('listitem')).toHaveTextContent('Demo Student 6 is dropped from the course with an F (10 of 9)')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('asks before switching session when marks are not submitted', async () => {
+    const requested = mockApi()
+    const { user } = await openMondaySession()
+    const list = await screen.findByRole('list', { name: 'Students of CSC 101 A' })
+    await user.click(within(within(list).getByRole('group', { name: 'Attendance of Demo Student 4' })).getByRole('radio', { name: 'Absent' }))
+
+    await user.selectOptions(screen.getByLabelText('Session'), '12')
+    const dialog = screen.getByRole('dialog', { name: 'Discard unsaved attendance?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.getByLabelText('Session')).toHaveValue('11')
+    expect(within(screen.getByRole('group', { name: 'Attendance of Demo Student 4' })).getByRole('radio', { name: 'Absent' })).toBeChecked()
+    expect(requested).not.toContain('12@2026-11-11')
+
+    await user.selectOptions(screen.getByLabelText('Session'), '12')
+    await user.click(within(screen.getByRole('dialog', { name: 'Discard unsaved attendance?' })).getByRole('button', { name: 'Discard marks' }))
+    expect(screen.getByLabelText('Session')).toHaveValue('12')
+    await waitFor(() => expect(requested).toContain('12@2026-11-11'))
+  })
+
+  it('opens the session and date from the URL', async () => {
+    const requested = mockApi()
+    const { router } = renderAt('/instructor/attendance?section=1&meeting=11&date=2026-11-02', { as: 'Instructor' })
+
+    expect(await screen.findByRole('list', { name: 'Students of CSC 101 A' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Session')).toHaveValue('11')
+    expect(screen.getByLabelText('Date')).toHaveValue('02/11/2026')
+    expect(requested).toEqual(['11@2026-11-02'])
+    expect(router.state.location.search).toBe('?section=1&meeting=11&date=2026-11-02')
+  })
+
+  it('picks the only section, and defaults the date of a linked session to its latest one', async () => {
+    const requested = mockApi()
+    const { user, router } = renderAt('/instructor/attendance?meeting=12', { as: 'Instructor' })
+
+    expect(await screen.findByLabelText('Course and section')).toHaveValue('1')
+    expect(screen.getByLabelText('Session')).toHaveValue('12')
+    expect(screen.getByLabelText('Date')).toHaveValue('11/11/2026')
+    await waitFor(() => expect(requested).toContain('12@2026-11-11'))
+
+    await user.selectOptions(screen.getByLabelText('Session'), '11')
+    const search = new URLSearchParams(router.state.location.search)
+    expect([search.get('section'), search.get('meeting'), search.get('date')]).toEqual(['1', '11', null])
   })
 
   it('says so when the section has no students', async () => {

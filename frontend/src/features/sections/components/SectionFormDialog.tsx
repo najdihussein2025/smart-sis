@@ -183,8 +183,8 @@ export function SectionFormDialog({ open, section, defaultTermId, onClose, onSav
                   <h4 className="text-sm font-semibold text-ink">Meeting {i + 1}</h4>
                   <Button
                     type="button"
-                    variant="ghost"
-                    className="h-8 px-2"
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => meetings.remove(i)}
                     disabled={meetings.fields.length === 1}
                     aria-label={`Remove meeting ${i + 1}`}

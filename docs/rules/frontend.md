@@ -47,6 +47,20 @@ A feature never imports another feature's `components/`. If two features need it
 - Status colours follow the business rules: attendance green/orange/red, charge Pending/Partial/Paid.
 - Works at 360 px wide; sidebar collapses to a top bar on mobile.
 - Accessible: labels on every input, buttons are `<button>`, focus visible, colour is never the only signal.
+- Touch targets are 44 px on phones. Size buttons with `Button size="md" | "sm" | "icon"`, never with an `h-*` class
+  (`cn` has no tailwind-merge, so height overrides fight the built-in size). Links that look like buttons use `LinkButton`.
+- Removing things (Delete, Drop, Deactivate) is `variant="danger-ghost"` with icon **and** text, then `ConfirmDialog`.
+- Page anatomy: `PageHeader` with the sidebar `icon` and an eyebrow = the term name on term-scoped pages, otherwise the
+  sidebar group ("Academics", "Money", "Help", "Setup"…), never the role. Card tops use `CardHeader`.
+- Empty states carry their own button (`EmptyState action`); filtered-empty states offer "Clear filters". A disabled
+  button shows why in visible text next to it.
+- Search boxes are `SearchField`; sortable columns `SortHeader` + `useSort`; numbers right-aligned with `tabular`.
+- Tables that matter on a phone (row actions, money) switch to cards below `lg` instead of scrolling sideways.
+- Forms where people type a lot (score sheet, attendance roster) guard unsaved work with `useUnsavedChanges` and keep
+  the save button in a sticky footer with the "Saved" message next to it.
+- Notices that aren't errors use `Alert tone="info" | "warning"`; `danger` is only for failures.
+- Dashboards: a "Next up" card + `AttentionList` (what needs action) first, stats (`StatCardGrid`, 2 per row on phones)
+  after.
 
 ## Style
 - Function components, named exports, no default exports except route lazies.

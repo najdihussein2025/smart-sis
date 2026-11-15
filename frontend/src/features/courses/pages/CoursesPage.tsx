@@ -10,16 +10,19 @@ import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Pagination } from '@/shared/ui/Pagination'
 import { QueryError } from '@/shared/ui/QueryError'
+import { SearchField } from '@/shared/ui/SearchField'
 import { SelectField } from '@/shared/ui/SelectField'
+import { SortHeader, useSort } from '@/shared/ui/SortHeader'
 import { TableScroll } from '@/shared/ui/TableScroll'
 import { TableSkeleton } from '@/shared/ui/TableSkeleton'
-import { TextField } from '@/shared/ui/TextField'
 import { CourseFormDialog } from '../components/CourseFormDialog'
 import { useCourses } from '../hooks'
+import type { CourseListItem } from '../types'
 
 const PAGE_SIZE = 20
 
 type DialogState = { open: false } | { open: true; courseId?: number }
+type SortKey = 'code' | 'credits'
 
 /** PB-03 / T08: admin searches, creates and edits courses with their prerequisites and major / elective mapping. */
 export function CoursesPage() {
@@ -28,6 +31,9 @@ export function CoursesPage() {
   const [page, setPage] = useState(1)
   const term = useDebouncedValue(search.trim())
   const courses = useCourses({ search: term, departmentId: departmentId ? Number(departmentId) : undefined, page, pageSize: PAGE_SIZE })
+  const { sorted, sort, toggle } = useSort<CourseListItem, SortKey>(courses.data?.items, (c, key) =>
+    key === 'code' ? c.code : c.credits,
+  )
   const lookups = useLookups()
   const [dialog, setDialog] = useState<DialogState>({ open: false })
   const saved = useSavedMessage()
@@ -35,12 +41,18 @@ export function CoursesPage() {
 
   const openNew = () => setDialog({ open: true })
   const close = () => setDialog({ open: false })
+  const clearFilters = () => {
+    setSearch('')
+    setDepartmentId('')
+    setPage(1)
+  }
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow="Academics"
         title="Courses"
+        icon={BookOpen}
         actions={
           <Button onClick={openNew}>
             <Plus className="size-4" aria-hidden /> New course
@@ -50,28 +62,19 @@ export function CoursesPage() {
         Codes, credits, prerequisites and the majors each course counts for.
       </PageHeader>
 
-      {saved.message && (
-        <div className="mb-4">
-          <Alert tone="success">{saved.message}</Alert>
-        </div>
-      )}
+      {saved.message && <Alert tone="success">{saved.message}</Alert>}
 
       <Card>
-        <div className="grid gap-3 border-b border-line p-4 sm:grid-cols-[minmax(0,1fr)_16rem]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-[38px] size-[18px] text-muted" aria-hidden />
-            <TextField
-              label="Search"
-              type="search"
-              placeholder="Code or name, e.g. CSC 2"
-              className="pl-10"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPage(1)
-              }}
-            />
-          </div>
+        <div className="grid gap-3 border-b border-line p-4 sm:grid-cols-[minmax(0,1fr)_16rem] sm:items-end sm:px-5">
+          <SearchField
+            label="Search"
+            placeholder="Code or name, e.g. CSC 2"
+            value={search}
+            onChange={(v) => {
+              setSearch(v)
+              setPage(1)
+            }}
+          />
           <SelectField
             label="Department"
             value={departmentId}
@@ -95,47 +98,61 @@ export function CoursesPage() {
           <QueryError error={courses.error} onRetry={() => courses.refetch()} />
         ) : courses.data.items.length === 0 ? (
           filtered ? (
-            <EmptyState icon={Search} title="No courses match">
+            <EmptyState
+              icon={Search}
+              title="No courses match"
+              action={
+                <Button variant="ghost" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            >
               Try another code or name, or choose “All departments”.
             </EmptyState>
           ) : (
-            <EmptyState icon={BookOpen} title="No courses yet">
-              Create the first course. Sections and the student catalog are built from courses.
-              <div className="mt-4">
+            <EmptyState
+              icon={BookOpen}
+              title="No courses yet"
+              action={
                 <Button onClick={openNew}>
                   <Plus className="size-4" aria-hidden /> New course
                 </Button>
-              </div>
+              }
+            >
+              Create the first course. Sections and the student catalog are built from courses.
             </EmptyState>
           )
         ) : (
           <>
             <TableScroll>
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
+              <table className="w-full text-left text-sm max-md:block">
+                <thead className="border-b border-line bg-canvas/60 text-xs uppercase tracking-wide text-muted max-md:hidden">
                   <tr>
-                    <th scope="col" className="px-5 py-3 font-medium">Code</th>
+                    <SortHeader label="Code" sortKey="code" sort={sort} onSort={toggle} />
                     <th scope="col" className="px-5 py-3 font-medium">Name</th>
-                    <th scope="col" className="px-5 py-3 font-medium max-sm:hidden">Department</th>
-                    <th scope="col" className="px-5 py-3 font-medium text-right max-sm:hidden">Credits</th>
+                    <th scope="col" className="px-5 py-3 font-medium">Department</th>
+                    <SortHeader label="Credits" sortKey="credits" sort={sort} onSort={toggle} align="right" />
                     <th scope="col" className="px-5 py-3"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line">
-                  {courses.data.items.map((c) => (
-                    <tr key={c.id}>
-                      <th scope="row" className="whitespace-nowrap px-5 py-3.5 font-medium text-ink max-sm:align-top max-sm:pl-4 max-sm:pr-2">{c.code}</th>
-                      <td className="px-5 py-3.5 text-ink">
-                        {c.name}
-                        {/* On phones the department and credits columns are hidden; show them under the name. */}
-                        <span className="mt-0.5 block text-xs text-muted sm:hidden">
-                          {c.departmentCode} · {c.credits} credits
-                        </span>
+                <tbody className="divide-y divide-line max-md:block">
+                  {sorted.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="transition-colors hover:bg-canvas/50 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:px-4 max-md:py-4"
+                    >
+                      <th scope="row" className="whitespace-nowrap px-5 py-3.5 font-medium text-ink max-md:p-0">{c.code}</th>
+                      <td className="px-5 py-3.5 text-ink max-md:col-span-2 max-md:row-start-2 max-md:p-0">{c.name}</td>
+                      <td className="px-5 py-3.5 text-muted max-md:row-start-3 max-md:p-0" title={c.departmentName}>
+                        <span className="sr-only md:hidden">Department </span>
+                        <span>{c.departmentCode}</span>
                       </td>
-                      <td className="px-5 py-3.5 text-muted max-sm:hidden" title={c.departmentName}>{c.departmentCode}</td>
-                      <td className="px-5 py-3.5 text-right tabular-nums text-muted max-sm:hidden">{c.credits}</td>
-                      <td className="px-5 py-3.5 text-right">
-                        <Button variant="ghost" className="h-8 px-2.5" onClick={() => setDialog({ open: true, courseId: c.id })} aria-label={`Edit ${c.code}`}>
+                      <td className="tabular px-5 py-3.5 text-right text-muted max-md:col-start-2 max-md:row-start-3 max-md:p-0">
+                        <span>{c.credits}</span>
+                        <span className="md:hidden"> credits</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right max-md:col-start-2 max-md:row-start-1 max-md:-mr-2 max-md:p-0">
+                        <Button variant="ghost" size="sm" onClick={() => setDialog({ open: true, courseId: c.id })} aria-label={`Edit ${c.code}`}>
                           <Pencil className="size-4" aria-hidden /> Edit
                         </Button>
                       </td>
@@ -158,6 +175,6 @@ export function CoursesPage() {
           close()
         }}
       />
-    </>
+    </div>
   )
 }

@@ -15,7 +15,7 @@ export function SchedulePage() {
 
   return (
     <>
-      <PageHeader eyebrow={data?.termName ?? 'Schedule'} title="My schedule">
+      <PageHeader eyebrow={data?.termName ?? 'Schedule'} title="My schedule" icon={CalendarDays}>
         Your classes this week. Pick a day to see when and where they meet.
       </PageHeader>
 

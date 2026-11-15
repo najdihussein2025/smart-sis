@@ -65,7 +65,7 @@ export function DateTimeField({ label, value, onChange, onBlur, min, minExclusiv
             onBlur={onBlur}
             aria-invalid={!!error}
             className={cn(
-              'block w-full h-11 rounded-lg border bg-surface px-3 text-[15px] text-ink disabled:bg-canvas disabled:text-muted',
+              'block w-full h-11 rounded-lg border bg-surface px-3 text-base sm:text-[15px] text-ink disabled:bg-canvas disabled:text-muted',
               'focus:outline-none focus:ring-2 focus:ring-accent/40',
               error ? 'border-danger' : 'border-line-strong focus:border-brand',
             )}

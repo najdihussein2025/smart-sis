@@ -77,6 +77,15 @@ function mockResults(onAdd: () => Response = () => HttpResponse.json({})) {
 }
 
 describe('CareerPage', () => {
+  it('before the first attempt shows one hero card with the call to action and no empty results card', async () => {
+    server.use(http.get('/api/career/assessments', () => HttpResponse.json(mine())))
+    renderAt('/student/career', { as: 'Student' })
+
+    expect(await screen.findByRole('heading', { name: 'Take the career assessment' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Start assessment' })).toHaveLength(1)
+    expect(screen.queryByText('No results yet')).not.toBeInTheDocument()
+  })
+
   it('takes the assessment: progress, a missing answer, then submit and results', async () => {
     let submitted: unknown = null
     server.use(

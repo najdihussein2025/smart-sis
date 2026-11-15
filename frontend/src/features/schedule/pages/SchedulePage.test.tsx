@@ -57,6 +57,9 @@ describe('SchedulePage', () => {
     expect(within(rows[1]!).getByText('C-204')).toBeInTheDocument()
     expect(within(rows[1]!).getByText('Demo Instructor')).toBeInTheDocument()
     expect(within(rows[1]!).getByText('Lecture')).toBeInTheDocument()
+    // Read-only: no attendance or grade links for students, and the time shows once.
+    expect(within(list).queryByRole('link')).not.toBeInTheDocument()
+    expect(within(rows[1]!).getAllByText('11:00–12:15')).toHaveLength(1)
   })
 
   it('switches days and shows an empty day', async () => {

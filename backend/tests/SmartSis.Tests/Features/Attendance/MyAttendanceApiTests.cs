@@ -44,7 +44,6 @@ public sealed class MyAttendanceApiTests(SisApiFactory factory) : IClassFixture<
     }
 
     [Fact]
-    [Trait("TC", "TC_42")]
     [Trait("Rule", "A5")]
     public async Task SomeAbsences_Warning_WithTheDates_NewestFirst()
     {

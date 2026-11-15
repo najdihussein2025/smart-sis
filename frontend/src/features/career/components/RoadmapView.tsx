@@ -11,12 +11,12 @@ import { useCareerAddToCart, useCareerList, useRoadmap } from '../hooks'
 import type { RoadmapStepStatus } from '../types'
 import { SectionCartButtons } from './SectionCartButtons'
 
-const statusBadge: Record<RoadmapStepStatus, { label: string; tone: 'success' | 'brand' | 'warning' | 'neutral' }> = {
+const statusBadge: Record<RoadmapStepStatus, { label: string; tone: 'success' | 'info' | 'warning' | 'neutral' | 'outline' }> = {
   Done: { label: 'Done', tone: 'success' },
-  InProgress: { label: 'In progress', tone: 'brand' },
+  InProgress: { label: 'In progress', tone: 'info' },
   Next: { label: 'Next', tone: 'warning' },
   Later: { label: 'Later', tone: 'neutral' },
-  Milestone: { label: 'Milestone', tone: 'neutral' },
+  Milestone: { label: 'Milestone', tone: 'outline' },
 }
 
 interface Props {
@@ -32,10 +32,15 @@ export function RoadmapView({ careerId, onCareerChange }: Props) {
 
   return (
     <Card id="roadmap">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-5 py-4">
-        <div>
-          <h2 className="font-display text-xl font-semibold text-ink">Career roadmap</h2>
-          <p className="mt-0.5 text-sm text-muted">Steps to get there, with the courses you have done and the ones to take next.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-4 py-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand">
+            <MapIcon className="size-[18px]" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg leading-snug font-semibold text-ink">Career roadmap</h2>
+            <p className="text-sm text-muted">Steps to get there, with the courses you have done and the ones to take next.</p>
+          </div>
         </div>
         <div className="w-full sm:w-64">
           <SelectField
@@ -55,7 +60,7 @@ export function RoadmapView({ careerId, onCareerChange }: Props) {
       </div>
 
       {add.isError && (
-        <div className="px-5 pt-4">
+        <div className="px-4 pt-4 sm:px-5">
           <Alert>{errorMessage(add.error)}</Alert>
         </div>
       )}
@@ -75,11 +80,11 @@ export function RoadmapView({ careerId, onCareerChange }: Props) {
       ) : (
         <>
           {roadmap.data.courseStepCount > 0 && (
-            <p className="px-5 pt-4 text-sm text-muted">
+            <p className="tabular px-4 pt-4 text-sm text-muted sm:px-5">
               {roadmap.data.doneCount} of {roadmap.data.courseStepCount} courses done
             </p>
           )}
-          <ol className="space-y-0 px-5 py-4" aria-label={`${roadmap.data.name} roadmap`}>
+          <ol className="space-y-0 px-4 py-4 sm:px-5" aria-label={`${roadmap.data.name} roadmap`}>
             {roadmap.data.steps.map((s) => {
               const badge = statusBadge[s.status]
               const canAdd = s.course && (s.status === 'Next' || s.status === 'Later')
@@ -90,14 +95,17 @@ export function RoadmapView({ careerId, onCareerChange }: Props) {
                     aria-hidden
                   />
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-medium text-ink">
-                      {s.stepOrder}. {s.title}
+                    <h3 className="font-semibold text-ink">
+                      <span className="tabular text-muted">{s.stepOrder}.</span> {s.title}
                     </h3>
-                    <Badge tone={badge.tone}>{badge.label}</Badge>
+                    <Badge tone={badge.tone} dot>
+                      {badge.label}
+                    </Badge>
                   </div>
                   {s.course && (
                     <p className="mt-0.5 text-sm text-ink">
-                      {s.course.code} {s.course.name} <span className="text-muted">· {s.course.credits} credits</span>
+                      <span className="font-semibold">{s.course.code}</span> {s.course.name}{' '}
+                      <span className="tabular whitespace-nowrap text-muted">· {s.course.credits} credits</span>
                     </p>
                   )}
                   {s.description && <p className="mt-0.5 text-sm text-muted">{s.description}</p>}

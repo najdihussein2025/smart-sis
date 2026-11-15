@@ -20,20 +20,20 @@ export function SectionCartButtons({ courseCode, sections, addingId, onAdd }: Pr
         return (
           <li key={s.sectionId}>
             {s.status === 'Enrolled' ? (
-              <Button variant="secondary" className="h-9" disabled aria-label={`${label}: Enrolled`}>
+              <Button variant="secondary" size="sm" disabled aria-label={`${label}: Enrolled`}>
                 <Check className="size-4" aria-hidden /> {s.sectionCode} · Enrolled
               </Button>
             ) : s.status === 'InCart' ? (
-              <Button variant="secondary" className="h-9" disabled aria-label={`${label}: In Cart`}>
+              <Button variant="secondary" size="sm" disabled aria-label={`${label}: In Cart`}>
                 <ShoppingCart className="size-4" aria-hidden /> {s.sectionCode} · In Cart
               </Button>
             ) : s.seatsLeft === 0 ? (
-              <Button variant="secondary" className="h-9" disabled aria-label={`${label}: Full`}>
+              <Button variant="secondary" size="sm" disabled aria-label={`${label}: Full`}>
                 {s.sectionCode} · Full
               </Button>
             ) : (
               <Button
-                className="h-9"
+                size="sm"
                 loading={addingId === s.sectionId}
                 onClick={() => onAdd(s.sectionId)}
                 aria-label={`Add ${label} to cart`}
@@ -59,10 +59,11 @@ export function PercentBar({ value, label }: { value: number; label: string }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={value}
+        aria-valuetext={`${value}%`}
       >
         <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
       </div>
-      <span className="w-12 shrink-0 text-right text-sm font-medium tabular-nums text-ink">{value}%</span>
+      <span className="tabular w-12 shrink-0 text-right text-sm font-medium text-ink">{value}%</span>
     </div>
   )
 }

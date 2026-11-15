@@ -4,7 +4,7 @@ import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { QueryError } from '@/shared/ui/QueryError'
-import { StatCard } from '@/shared/ui/StatCard'
+import { StatCard, StatCardGrid } from '@/shared/ui/StatCard'
 import { TableSkeleton } from '@/shared/ui/TableSkeleton'
 import { Tabs } from '@/shared/ui/Tabs'
 import { CourseGradesCard } from '../components/CourseGradesCard'
@@ -17,14 +17,16 @@ type View = 'term' | 'transcript'
 /** PB-09 / T37: this term's grades per course (components, progress, GPA) and the transcript. */
 export function StudentGradesPage() {
   const [view, setView] = useState<View>('term')
+  // Shares the cache with the "This term" view; only names the term in the eyebrow.
+  const termName = useMyGrades().data?.termName
 
   return (
     <>
-      <PageHeader eyebrow="Academics" title="Grades">
+      <PageHeader eyebrow={(view === 'term' && termName) || 'Academics'} title="Grades" icon={GraduationCap}>
         Your scores per component as instructors enter them, your GPA, and your transcript.
       </PageHeader>
 
-      <div className="mb-5">
+      <div className="mb-6">
         <Tabs<View>
           label="Grades view"
           value={view}
@@ -59,17 +61,17 @@ function ThisTerm() {
 
   const g = grades.data
   return (
-    <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <div className="space-y-6">
+      <StatCardGrid columns="sm:grid-cols-3" aria-label="Grade summary">
         <StatCard
-          label={g.termName ? `Term GPA · ${g.termName}` : 'Term GPA'}
+          label="Term GPA"
           value={gpa(g.termGpa)}
           hint={g.termGpa === null ? 'Shown once a course is finalized.' : undefined}
           icon={TrendingUp}
         />
         <StatCard label="Cumulative GPA" value={gpa(g.cumulativeGpa)} hint="Latest attempt of each course, 4.0 scale." icon={Award} />
         <StatCard label="Credits earned" value={String(g.creditsEarned)} hint="Passed with D or better." icon={GraduationCap} />
-      </div>
+      </StatCardGrid>
 
       {g.courses.length === 0 ? (
         <Card>

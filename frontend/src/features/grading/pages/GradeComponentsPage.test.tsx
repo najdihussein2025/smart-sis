@@ -137,21 +137,29 @@ describe('GradeComponentsPage', () => {
     expect(within(dialog).getByLabelText('Weight (%)')).toHaveAttribute('aria-invalid', 'true')
   })
 
-  it('deletes after confirming, and shows a 409 when the component has scores', async () => {
+  it('deletes after confirming, blocks a component with scores, and shows a 409 from the API', async () => {
     const { sent } = mockComponents()
+    // Someone entered a score for Project after the list loaded: the first delete gets a 409.
     server.use(
-      http.delete('/api/admin/grade-components/1', () =>
-        HttpResponse.json({ status: 409, title: 'Midterm already has 4 scores, so it can\'t be deleted.', code: 'component_has_scores' }, { status: 409 }),
+      http.delete(
+        '/api/admin/grade-components/2',
+        () => HttpResponse.json({ status: 409, title: 'Project already has 1 score, so it can\'t be deleted.', code: 'component_has_scores' }, { status: 409 }),
+        { once: true },
       ),
     )
     const { user } = renderAt('/admin/grade-components', { as: 'Admin' })
     await chooseCourse(user)
     await screen.findByRole('rowheader', { name: 'Midterm' })
 
-    await user.click(screen.getByRole('button', { name: 'Delete Midterm' }))
-    let dialog = screen.getByRole('dialog', { name: 'Delete Midterm?' })
+    // Midterm has scores: its Delete is disabled and says why.
+    const midtermDelete = screen.getByRole('button', { name: /Delete Midterm/ })
+    expect(midtermDelete).toBeDisabled()
+    expect(midtermDelete).toHaveTextContent('Has scores')
+
+    await user.click(screen.getByRole('button', { name: 'Delete Project' }))
+    let dialog = screen.getByRole('dialog', { name: 'Delete Project?' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(await within(dialog).findByText('Midterm already has 4 scores, so it can\'t be deleted.')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Project already has 1 score, so it can\'t be deleted.')).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
 
     await user.click(screen.getByRole('button', { name: 'Delete Project' }))
@@ -170,6 +178,19 @@ describe('GradeComponentsPage', () => {
     expect(await screen.findByText(/components are locked/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit Midterm' })).toBeDisabled()
     expect(screen.getByRole('button', { name: /New component/ })).toBeDisabled()
+    expect(screen.getByText('Locked: grades are finalized.')).toBeInTheDocument()
+  })
+
+  it('says why "New component" is disabled', async () => {
+    mockComponents([comp(1, 'Midterm', 50, 40), comp(2, 'Final', 100, 60)])
+    const { user } = renderAt('/admin/grade-components', { as: 'Admin' })
+
+    expect(await screen.findByText('Choose a course first.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /New component/ })).toBeDisabled()
+
+    await chooseCourse(user)
+    expect(await screen.findByText('Weights already total 100%.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /New component/ })).toHaveAccessibleDescription('Weights already total 100%.')
   })
 
   it('shows an empty state for a course without components', async () => {

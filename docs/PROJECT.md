@@ -529,4 +529,8 @@ The mobile test cases (TC_01–TC_114) map to phases 1–6 and are reused as acc
 - [x] Career module design (§9): built, decisions in `docs/decisions.md` (PB-16/PB-17/PB-20).
 - [ ] Refresh tokens: login currently issues one access token (8 h). Decide whether we need refresh tokens (would add a `RefreshTokens` table, 50th).
 - [ ] Fix the BRD: SR-1 is listed twice, SR-8 and SR-12 are missing, the §5.3 table references shifted SR numbers, and the out-of-scope row cites SR-22 (which is the security requirement) for "no mobile app".
+- [ ] Lookups admin screen is **read-only** (campuses, departments, majors with credit cap, rooms, instructors from
+  `GET /api/admin/lookups`). Creating and editing lookups needs admin CRUD endpoints that don't exist yet; until then
+  the lists come from the seed data.
+- [ ] Users: no "Reactivate" for deactivated users. Needs an API endpoint (the UI says so on inactive rows).
 - [ ] BRD open issues still pending with stakeholders: OI-2 (official authentication service), OI-4 (response-time limits), OI-6 (supported browsers). OI-1, OI-3, OI-5 and OI-7 are answered by the decisions in §4 and §6 and can be closed in the next BRD version.

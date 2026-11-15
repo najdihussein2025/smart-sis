@@ -40,9 +40,9 @@ export const AnnouncementItem = forwardRef<HTMLElement, Props>(function Announce
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="brand">{audienceLabel(a)}</Badge>
-          {a.status === 'Scheduled' && <Badge tone="warning">Scheduled</Badge>}
-          {a.status === 'Expired' && <Badge tone="danger">Expired</Badge>}
+          <Badge tone="outline">{audienceLabel(a)}</Badge>
+          {a.status === 'Scheduled' && <Badge tone="warning" dot>Scheduled</Badge>}
+          {a.status === 'Expired' && <Badge tone="danger" dot>Expired</Badge>}
         </div>
       </div>
 
@@ -60,12 +60,12 @@ export const AnnouncementItem = forwardRef<HTMLElement, Props>(function Announce
         {manage && (
           <div className="flex gap-1">
             {onEdit && (
-              <Button variant="ghost" className="h-8 px-2.5" onClick={() => onEdit(a)} aria-label={`Edit "${a.title}"`}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(a)} aria-label={`Edit "${a.title}"`}>
                 <Pencil className="size-4" aria-hidden /> Edit
               </Button>
             )}
             {onDelete && (
-              <Button variant="ghost" className="h-8 px-2.5" onClick={() => onDelete(a)} aria-label={`Delete "${a.title}"`}>
+              <Button variant="danger-ghost" size="sm" onClick={() => onDelete(a)} aria-label={`Delete "${a.title}"`}>
                 <Trash2 className="size-4" aria-hidden /> Delete
               </Button>
             )}

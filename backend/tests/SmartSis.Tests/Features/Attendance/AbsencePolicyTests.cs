@@ -26,7 +26,6 @@ public sealed class AbsencePolicyTests
 
     [Fact]
     [Trait("Rule", "A2")]
-    [Trait("TC", "TC_39")]
     public void Evaluate_AtLimitMinusOne_SendsWarning() =>
         Assert.Equal(new AbsenceDecision(AbsenceAlertLevel.Warning, false), AbsencePolicy.Evaluate(8, Limit, NoneSent));
 
@@ -37,7 +36,6 @@ public sealed class AbsencePolicyTests
 
     [Fact]
     [Trait("Rule", "A2")]
-    [Trait("TC", "TC_40")]
     public void Evaluate_AtLimit_SendsLimitAlert() =>
         Assert.Equal(new AbsenceDecision(AbsenceAlertLevel.Limit, false), AbsencePolicy.Evaluate(9, Limit, [AbsenceAlertLevel.Warning]));
 
@@ -48,7 +46,6 @@ public sealed class AbsencePolicyTests
 
     [Fact]
     [Trait("Rule", "A3")]
-    [Trait("TC", "TC_41")]
     public void Evaluate_AtLimitPlusOne_AutoDropsAndTellsTheStudent() =>
         Assert.Equal(new AbsenceDecision(AbsenceAlertLevel.AutoDropped, true),
             AbsencePolicy.Evaluate(10, Limit, [AbsenceAlertLevel.Warning, AbsenceAlertLevel.Limit]));

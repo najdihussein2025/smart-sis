@@ -190,6 +190,22 @@ describe('AdminPaymentsPage', () => {
     expect(created).toEqual([{ majorId: 1, termId: 2, paymentTypeId: 1, title: 'Spring 2027 tuition', amount: 4500, dueDate: '2027-01-15' }])
   })
 
+  it('TC_95: an amount that is negative, zero or not a number is refused before sending', async () => {
+    const { created } = mock()
+    const { user } = renderAt('/admin/payments', { as: 'Admin' })
+
+    await user.click(await screen.findByRole('button', { name: 'Charge a major' }))
+    const dialog = screen.getByRole('dialog', { name: 'Charge a major' })
+    const amount = within(dialog).getByLabelText('Amount per student')
+    for (const [typed, message] of [['abc', 'Enter an amount like 1500 or 1500.50.'], ['-50', 'Enter an amount like 1500 or 1500.50.'], ['0', 'Enter an amount greater than zero.']] as const) {
+      await user.clear(amount)
+      await user.type(amount, typed)
+      await user.click(within(dialog).getByRole('button', { name: 'Create charges' }))
+      expect(await within(dialog).findByText(message)).toBeInTheDocument()
+    }
+    expect(created).toHaveLength(0)
+  })
+
   it('shows field errors and the 409 when the major has nobody to charge', async () => {
     const { created } = mock()
     server.use(
@@ -235,6 +251,33 @@ describe('AdminPaymentsPage', () => {
     mock({ charges: [] })
     renderAt('/admin/payments', { as: 'Admin' })
     expect(await screen.findByText('No charges yet')).toBeInTheDocument()
+    // The empty state carries the button it names (plus the one in the page header).
+    expect(screen.getAllByRole('button', { name: 'Charge a major' })).toHaveLength(2)
+  })
+
+  it('offers "Clear filters" when no charge matches, and sorts by balance', async () => {
+    mock()
+    const { user } = renderAt('/admin/payments', { as: 'Admin' })
+    await screen.findByRole('rowheader', { name: /Demo Student 1/ })
+    const students = () => screen.getAllByRole('rowheader').map((h) => h.querySelector('span')?.textContent)
+
+    await user.click(screen.getByRole('button', { name: 'Balance' }))
+    expect(screen.getByRole('columnheader', { name: /Balance/ })).toHaveAttribute('aria-sort', 'ascending')
+    expect(students()).toEqual(['Demo Student 3', 'Demo Student 2', 'Demo Student 1'])
+
+    // The phone filter toggle reports how many filters are on.
+    expect(screen.getByRole('button', { name: 'Filters' })).toHaveAttribute('aria-expanded', 'false')
+    await user.selectOptions(screen.getByLabelText('Major'), 'Mathematics')
+    server.use(http.get('/api/admin/finance/charges', ({ request }) =>
+      HttpResponse.json(paged(new URL(request.url).searchParams.get('majorId') ? [] : [partial, overdue, paid]))))
+    await user.selectOptions(screen.getByLabelText('Status'), 'Pending')
+    expect(await screen.findByText('No charges match')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Filters (2)' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(await screen.findByRole('rowheader', { name: /Demo Student 1/ })).toBeInTheDocument()
+    expect(screen.getByLabelText('Status')).toHaveValue('')
+    expect(screen.getByLabelText('Major')).toHaveValue('')
   })
 
   it('shows a load error with retry', async () => {

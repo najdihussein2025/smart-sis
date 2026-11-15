@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { CheckCheck, ListChecks, Users } from 'lucide-react'
+import { useSearchParams } from 'react-router'
+import { Check, CheckCheck, ListChecks, Users } from 'lucide-react'
 import { errorMessage } from '@/shared/api/problem'
 import { useSavedMessage } from '@/shared/lib/useSavedMessage'
+import { useUnsavedChanges } from '@/shared/lib/useUnsavedChanges'
 import { Alert } from '@/shared/ui/Alert'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -17,18 +20,25 @@ import { num } from '../components/gradingForms'
 import { ScoreSheet } from '../components/ScoreSheet'
 import { useFinalizeSection, useGradingSection, useRoster, useTeachingSections } from '../hooks'
 
-/** PB-08 / T34: section → component → score per student, existing scores filled in; then finalize the section's grades. */
+/**
+ * PB-08 / T34: section → component → score per student, existing scores filled in; then finalize the section's grades.
+ * `?section=<id>` opens a section directly (the teaching schedule links here).
+ */
 export function InstructorGradingPage() {
   const sections = useTeachingSections()
-  const [sectionId, setSectionId] = useState<number | undefined>()
+  const [params] = useSearchParams()
+  const [sectionId, setSectionId] = useState<number | undefined>(() => Number(params.get('section')) || undefined)
   const [componentId, setComponentId] = useState<number | undefined>()
   const [confirming, setConfirming] = useState(false)
+  const [dirty, setDirty] = useState(false)
+  const unsaved = useUnsavedChanges(dirty)
   const saved = useSavedMessage()
   const finalize = useFinalizeSection()
 
-  // Start on the first section, and on the first component of the chosen section.
+  // Start on the linked (or first) section, and on the first component of the chosen section.
   useEffect(() => {
-    if (sectionId === undefined && sections.data?.length) setSectionId(sections.data[0]!.sectionId)
+    const list = sections.data
+    if (list?.length && !list.some((s) => s.sectionId === sectionId)) setSectionId(list[0]!.sectionId)
   }, [sectionId, sections.data])
   const section = useGradingSection(sectionId)
   useEffect(() => {
@@ -39,6 +49,8 @@ export function InstructorGradingPage() {
 
   const current = sections.data?.find((s) => s.sectionId === sectionId)
   const label = current ? `${current.courseCode} ${current.sectionCode}` : ''
+  const weightsOff = !!section.data && section.data.totalWeight !== 100
+  const missing = section.data?.notGraded ?? 0
 
   const onFinalize = () => {
     if (!sectionId) return
@@ -50,14 +62,35 @@ export function InstructorGradingPage() {
     })
   }
 
+  const finalizeAction = section.data ? (
+    section.data.isFinalized ? (
+      <Badge tone="success" dot>
+        Finalized
+      </Badge>
+    ) : (
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={section.data.studentCount === 0 || section.data.components.length === 0 || weightsOff || dirty}
+        aria-describedby={weightsOff || dirty ? 'finalize-reason' : undefined}
+        onClick={() => {
+          finalize.reset()
+          setConfirming(true)
+        }}
+      >
+        <CheckCheck className="size-4" aria-hidden /> Finalize grades
+      </Button>
+    )
+  ) : undefined
+
   return (
     <>
-      <PageHeader eyebrow="Teaching" title="Grading">
+      <PageHeader eyebrow={current?.termName ?? 'Teaching'} title="Grading" icon={ListChecks}>
         Choose a section and a component, then enter each student&apos;s score. Finalize when every score is in.
       </PageHeader>
 
       {saved.message && (
-        <div className="mb-4">
+        <div className="mb-6">
           <Alert tone="success">{saved.message}</Alert>
         </div>
       )}
@@ -78,14 +111,30 @@ export function InstructorGradingPage() {
         </Card>
       ) : (
         <Card>
-          <div className="flex flex-wrap items-end gap-4 border-b border-line p-4">
-            <div className="min-w-64 flex-1">
+          <CardHeader
+            title={current ? `${label} · ${current.courseName}` : 'Section'}
+            description={
+              section.data ? (
+                <span className="tabular">
+                  {section.data.studentCount} student{section.data.studentCount === 1 ? '' : 's'} · weights total{' '}
+                  {num(section.data.totalWeight)}%
+                </span>
+              ) : undefined
+            }
+            actions={finalizeAction}
+          />
+
+          <div className="space-y-4 border-b border-line p-4 sm:px-5">
+            <div className="max-w-xl">
               <SelectField
                 label="Section"
                 value={sectionId ?? ''}
                 onChange={(e) => {
-                  setSectionId(Number(e.target.value))
-                  setComponentId(undefined)
+                  const id = Number(e.target.value)
+                  unsaved.guard(() => {
+                    setSectionId(id)
+                    setComponentId(undefined)
+                  })
                 }}
               >
                 {sections.data.map((s) => (
@@ -96,26 +145,12 @@ export function InstructorGradingPage() {
                 ))}
               </SelectField>
             </div>
-            {section.data && (
-              <div className="flex flex-wrap items-center gap-3 pb-1">
-                <span className="text-sm text-muted">
-                  {section.data.studentCount} student{section.data.studentCount === 1 ? '' : 's'}
-                </span>
-                {section.data.isFinalized ? (
-                  <Badge tone="success">Finalized</Badge>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    disabled={section.data.studentCount === 0 || section.data.components.length === 0}
-                    onClick={() => {
-                      finalize.reset()
-                      setConfirming(true)
-                    }}
-                  >
-                    <CheckCheck className="size-4" aria-hidden /> Finalize grades
-                  </Button>
-                )}
-              </div>
+            {section.data && !section.data.isFinalized && (weightsOff || dirty) && (
+              <p id="finalize-reason" className="text-sm text-warning">
+                {weightsOff
+                  ? `Finalizing is off: the components add up to ${num(section.data.totalWeight)}%, not 100%. Ask the admin to complete them.`
+                  : 'Save the scores you typed before finalizing.'}
+              </p>
             )}
           </div>
 
@@ -130,19 +165,27 @@ export function InstructorGradingPage() {
             </EmptyState>
           ) : (
             <>
-              <div className="space-y-2 border-b border-line p-4">
+              <div className="border-b border-line p-4 sm:px-5">
                 <Tabs
                   label="Grade components"
                   value={String(componentId ?? '')}
-                  onChange={(v) => setComponentId(Number(v))}
-                  items={section.data.components.map((c) => ({ value: String(c.id), label: `${c.name} · ${num(c.weight)}%` }))}
+                  onChange={(v) => unsaved.guard(() => setComponentId(Number(v)))}
+                  items={section.data.components.map((c) => {
+                    const name = `${c.name} · ${num(c.weight)}%`
+                    const done = section.data.studentCount > 0 && c.notGraded === 0
+                    return {
+                      value: String(c.id),
+                      ariaLabel: `${name}, ${done ? 'everyone graded' : `${c.notGraded} not graded`}`,
+                      label: (
+                        <>
+                          {name}
+                          {done && <Check className="size-3.5 text-success" aria-hidden />}
+                        </>
+                      ),
+                      count: done ? undefined : c.notGraded,
+                    }
+                  })}
                 />
-                {!section.data.isFinalized && section.data.totalWeight !== 100 && (
-                  <p className="text-sm text-warning">
-                    The components add up to {num(section.data.totalWeight)}%, not 100%. Grades can be finalized once the admin completes
-                    them.
-                  </p>
-                )}
               </div>
               {section.data.studentCount === 0 ? (
                 <EmptyState icon={Users} title="No students yet">
@@ -153,7 +196,7 @@ export function InstructorGradingPage() {
               ) : roster.isError ? (
                 <QueryError error={roster.error} onRetry={() => roster.refetch()} />
               ) : (
-                <ScoreSheet key={roster.data.component.id} roster={roster.data} onSaved={saved.show} />
+                <ScoreSheet key={roster.data.component.id} roster={roster.data} onDirtyChange={setDirty} />
               )}
             </>
           )}
@@ -169,7 +212,24 @@ export function InstructorGradingPage() {
         onConfirm={onFinalize}
         onClose={() => setConfirming(false)}
       >
-        Each student gets their final percentage and letter grade, and their GPA is updated. Scores can&apos;t be changed afterwards.
+        <p>
+          Each student gets their final percentage and letter grade, and their GPA is updated. Scores can&apos;t be changed afterwards.
+        </p>
+        {missing > 0 && (
+          <p className="mt-3 font-medium text-warning">
+            {missing} score{missing === 1 ? ' is' : 's are'} still missing. Enter every score, 0 included, before finalizing.
+          </p>
+        )}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={unsaved.pending}
+        title="Discard unsaved scores?"
+        confirmLabel="Discard scores"
+        onConfirm={unsaved.confirm}
+        onClose={unsaved.cancel}
+      >
+        The scores you typed for this component haven&apos;t been saved. Switching now loses them.
       </ConfirmDialog>
     </>
   )

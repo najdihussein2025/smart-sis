@@ -4,6 +4,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { server } from '@/test/server'
 import { profileFor } from '@/test/fixtures'
 import { renderAt } from '@/test/render'
+import type { UserEvent } from '@testing-library/user-event'
 import type { KnowledgeDocument } from '../types'
 
 // PB-15 / T63: admin knowledge base. Simulated documents only (SR-23).
@@ -42,6 +43,12 @@ function mockKnowledge(initial: KnowledgeDocument[]) {
   return { uploads }
 }
 
+/** Opens the upload dialog from the page header and returns it. */
+async function openUpload(user: UserEvent) {
+  await user.click((await screen.findAllByRole('button', { name: 'Upload document' }))[0]!)
+  return within(screen.getByRole('dialog', { name: 'Upload document' }))
+}
+
 const textFile = (name: string, content = 'Make-up exams need a medical note.') => new File([content], name, { type: 'text/plain' })
 
 describe('KnowledgePage', () => {
@@ -59,11 +66,16 @@ describe('KnowledgePage', () => {
     const { user } = renderAt('/admin/knowledge', { as: 'Admin' })
     expect(await screen.findByText('No documents yet')).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Title'), 'Exam rules')
-    await user.upload(screen.getByLabelText(/^File/), textFile('exam-rules.md'))
-    await user.click(screen.getByRole('button', { name: 'Upload' }))
+    const dialog = await openUpload(user)
+    expect(dialog.getByText('No file chosen')).toBeInTheDocument()
+    await user.type(dialog.getByLabelText('Title'), 'Exam rules')
+    await user.upload(dialog.getByLabelText(/^File/), textFile('exam-rules.md'))
+    // The styled picker shows the chosen file's name.
+    expect(dialog.getByText('exam-rules.md')).toBeInTheDocument()
+    await user.click(dialog.getByRole('button', { name: 'Upload' }))
 
     expect(await screen.findByText('Exam rules uploaded. The assistant can use it now.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(uploads).toEqual([{ title: 'Exam rules', fileName: 'exam-rules.md' }])
     expect(await screen.findByRole('rowheader', { name: 'Exam rules' })).toBeInTheDocument()
   })
@@ -71,19 +83,21 @@ describe('KnowledgePage', () => {
   it('asks for a title and a file', async () => {
     const { uploads } = mockKnowledge([])
     const { user } = renderAt('/admin/knowledge', { as: 'Admin' })
-    await user.click(await screen.findByRole('button', { name: 'Upload' }))
-    expect(screen.getByText('Enter a title.')).toBeInTheDocument()
-    expect(screen.getByText('Choose a file.')).toBeInTheDocument()
+    const dialog = await openUpload(user)
+    await user.click(dialog.getByRole('button', { name: 'Upload' }))
+    expect(await dialog.findByText('Enter a title.')).toBeInTheDocument()
+    expect(dialog.getByText('Choose a file.')).toBeInTheDocument()
     expect(uploads).toHaveLength(0)
   })
 
   it('rejects a file over 1 MB', async () => {
     mockKnowledge([])
     const { user } = renderAt('/admin/knowledge', { as: 'Admin' })
-    await user.type(await screen.findByLabelText('Title'), 'Huge')
-    await user.upload(screen.getByLabelText(/^File/), textFile('huge.txt', 'x'.repeat(1_000_001)))
-    await user.click(screen.getByRole('button', { name: 'Upload' }))
-    expect(await screen.findByText('The file must be 1 MB or smaller.')).toBeInTheDocument()
+    const dialog = await openUpload(user)
+    await user.type(dialog.getByLabelText('Title'), 'Huge')
+    await user.upload(dialog.getByLabelText(/^File/), textFile('huge.txt', 'x'.repeat(1_000_001)))
+    await user.click(dialog.getByRole('button', { name: 'Upload' }))
+    expect(await dialog.findByText('The file must be 1 MB or smaller.')).toBeInTheDocument()
   })
 
   it('shows the API field error under the field', async () => {
@@ -94,10 +108,11 @@ describe('KnowledgePage', () => {
       ),
     )
     const { user } = renderAt('/admin/knowledge', { as: 'Admin' })
-    await user.type(await screen.findByLabelText('Title'), 'Rules')
-    await user.upload(screen.getByLabelText(/^File/), textFile('rules.txt'))
-    await user.click(screen.getByRole('button', { name: 'Upload' }))
-    expect(await screen.findByText('Upload a .txt or .md file.')).toBeInTheDocument()
+    const dialog = await openUpload(user)
+    await user.type(dialog.getByLabelText('Title'), 'Rules')
+    await user.upload(dialog.getByLabelText(/^File/), textFile('rules.txt'))
+    await user.click(dialog.getByRole('button', { name: 'Upload' }))
+    expect(await dialog.findByText('Upload a .txt or .md file.')).toBeInTheDocument()
   })
 
   it('re-ingests a failed document and deletes one after confirming', async () => {

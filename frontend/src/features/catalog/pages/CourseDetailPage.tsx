@@ -1,11 +1,12 @@
 import { Link, useParams } from 'react-router'
-import { ArrowLeft, Check, Layers, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, BookOpen, Check, Layers, ShoppingCart } from 'lucide-react'
 import { useAddToCart } from '@/features/cart/hooks'
 import { errorMessage } from '@/shared/api/problem'
 import { Alert } from '@/shared/ui/Alert'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { MeetingList } from '@/shared/ui/MeetingList'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -46,22 +47,23 @@ export function CourseDetailPage() {
     )
 
   const c = course.data
+  const enrolledSection = c.sections.find((s) => s.status === 'Enrolled')
   return (
     <>
       {back}
-      <PageHeader eyebrow={`${c.code} · ${c.credits} credits`} title={c.name}>
+      <PageHeader eyebrow={`${c.code} · ${c.credits} credits`} title={c.name} icon={BookOpen}>
         {c.departmentName}
       </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card className="lg:order-2">
-          <div className="space-y-4 p-5 text-sm">
+          <div className="space-y-5 p-5 text-sm">
             <div>
-              <h2 className="font-medium text-ink">About this course</h2>
+              <h2 className="font-display text-base font-semibold text-ink">About this course</h2>
               <p className="mt-1 text-muted">{c.description ?? 'No description yet.'}</p>
             </div>
             <div>
-              <h2 className="font-medium text-ink">Prerequisites</h2>
+              <h2 className="font-display text-base font-semibold text-ink">Prerequisites</h2>
               {c.prerequisites.length === 0 ? (
                 <p className="mt-1 text-muted">None.</p>
               ) : (
@@ -69,9 +71,17 @@ export function CourseDetailPage() {
                   {c.prerequisites.map((p) => (
                     <li key={p.id} className="flex items-center justify-between gap-2">
                       <span>
-                        <span className="font-medium text-ink">{p.code}</span> <span className="text-muted">{p.name}</span>
+                        <span className="font-semibold text-ink">{p.code}</span> <span className="text-muted">{p.name}</span>
                       </span>
-                      {p.passed ? <Badge tone="success">Passed</Badge> : <Badge tone="warning">Not passed</Badge>}
+                      {p.passed ? (
+                        <Badge tone="success" dot>
+                          Passed
+                        </Badge>
+                      ) : (
+                        <Badge tone="warning" dot>
+                          Not passed
+                        </Badge>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -82,10 +92,18 @@ export function CourseDetailPage() {
         </Card>
 
         <Card className="lg:order-1">
-          <h2 className="border-b border-line px-5 py-4 font-medium text-ink">Sections this term</h2>
+          <CardHeader title="Sections this term" icon={Layers} />
           {add.isError && (
             <div className="px-5 pt-4">
               <Alert>{errorMessage(add.error)}</Alert>
+            </div>
+          )}
+          {enrolledSection && c.sections.some((s) => s.status !== 'Enrolled') && (
+            <div className="px-5 pt-4">
+              <Alert tone="warning" title={`You're already enrolled in section ${enrolledSection.sectionCode}.`}>
+                A course can only be held in one section. To change section, add the one you want to your cart, then use Swap
+                there (during enrollment or add/drop).
+              </Alert>
             </div>
           )}
           {c.sections.length === 0 ? (
@@ -116,11 +134,13 @@ function SectionRow({ section: s, label, adding, onAdd }: { section: CatalogSect
     <li className="flex flex-wrap items-start gap-4 px-5 py-4">
       <div className="min-w-0 flex-1 space-y-1.5">
         <p className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-ink">Section {s.sectionCode}</span>
+          <span className="font-semibold text-ink">Section {s.sectionCode}</span>
           {s.seatsLeft === 0 ? (
-            <Badge tone="danger">Full</Badge>
+            <Badge tone="danger" dot>
+              Full
+            </Badge>
           ) : (
-            <span className="text-sm text-muted">
+            <span className="tabular text-sm whitespace-nowrap text-muted">
               {s.seatsLeft} of {s.capacity} seats left
             </span>
           )}

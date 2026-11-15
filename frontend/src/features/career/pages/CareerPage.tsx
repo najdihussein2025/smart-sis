@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { ClipboardList, Compass, Play } from 'lucide-react'
+import { ArrowRight, ClipboardList, Compass, Lock, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/shared/lib/format'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
+import { CardHeader } from '@/shared/ui/CardHeader'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { QueryError } from '@/shared/ui/QueryError'
@@ -26,7 +27,7 @@ export function CareerPage() {
   const [roadmapCareer, setRoadmapCareer] = useState<number | undefined>()
 
   const header = (
-    <PageHeader eyebrow="Career guidance" title="Career">
+    <PageHeader eyebrow="Campus" title="Career" icon={Compass}>
       Discover careers that fit your strengths and the courses that lead there.
     </PageHeader>
   )
@@ -73,39 +74,50 @@ export function CareerPage() {
         {submitted && <Alert tone="success">Assessment submitted. Here are your results.</Alert>}
 
         {mine.data.canTake ? (
-          <Card className="flex flex-wrap items-center justify-between gap-4 p-5">
-            <div className="max-w-xl">
-              <h2 className="font-medium text-ink">{latest ? 'Retake the career assessment' : 'Take the career assessment'}</h2>
-              <p className="mt-1 text-sm text-muted">
-                Answer 20 to 30 short questions about what you enjoy. It takes about 5 minutes and you can take it once per term
-                {mine.data.currentTermName ? ` (${mine.data.currentTermName})` : ''}.
-              </p>
-            </div>
-            <Button onClick={() => setTaking(true)}>
-              <Play className="size-4" aria-hidden /> {latest ? 'Retake assessment' : 'Start assessment'}
-            </Button>
-          </Card>
+          latest ? (
+            <Card className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
+              <div className="max-w-xl">
+                <h2 className="font-display text-lg font-semibold text-ink">Retake the career assessment</h2>
+                <p className="mt-1 text-sm text-muted">
+                  You can take it once per term{mine.data.currentTermName ? ` (${mine.data.currentTermName})` : ''}. Your results
+                  update once you submit.
+                </p>
+              </div>
+              <Button variant="secondary" onClick={() => setTaking(true)}>
+                <RotateCcw className="size-4" aria-hidden /> Retake assessment
+              </Button>
+            </Card>
+          ) : (
+            <Card className="overflow-hidden">
+              <div className="flex flex-col items-start gap-5 bg-brand-50/60 p-5 sm:flex-row sm:items-center sm:p-6">
+                <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-accent shadow-sm">
+                  <ClipboardList className="size-6" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-display text-xl font-semibold text-ink">Take the career assessment</h2>
+                  <p className="mt-1 max-w-prose text-sm text-muted">
+                    Answer 20 to 30 short questions about what you enjoy. In about 5 minutes you&apos;ll see your top careers, why
+                    they fit you and the courses that lead there. You can take it once per term
+                    {mine.data.currentTermName ? ` (${mine.data.currentTermName})` : ''}.
+                  </p>
+                </div>
+                <Button onClick={() => setTaking(true)} className="max-sm:w-full">
+                  Start assessment <ArrowRight className="size-4" aria-hidden />
+                </Button>
+              </div>
+            </Card>
+          )
         ) : !latest ? (
           <Card>
-            <EmptyState icon={ClipboardList} title="The assessment is closed">
+            <EmptyState icon={Lock} title="The assessment is closed">
               {mine.data.reason}
             </EmptyState>
           </Card>
         ) : (
-          <p className="text-sm text-muted">{mine.data.reason}</p>
+          <Alert tone="info">{mine.data.reason}</Alert>
         )}
 
-        {latest ? (
-          <Results latest={latest} roadmapCareer={roadmapCareer} onRoadmapCareer={setRoadmapCareer} />
-        ) : (
-          mine.data.canTake && (
-            <Card>
-              <EmptyState icon={Compass} title="No results yet">
-                Take the assessment to see your top careers, why they fit you and the courses that lead there.
-              </EmptyState>
-            </Card>
-          )
-        )}
+        {latest && <Results latest={latest} roadmapCareer={roadmapCareer} onRoadmapCareer={setRoadmapCareer} />}
       </div>
     </>
   )
@@ -135,16 +147,14 @@ function Results({
 function TraitScores({ assessment }: { assessment: Assessment }) {
   return (
     <Card>
-      <div className="border-b border-line px-5 py-4">
-        <h2 className="font-medium text-ink">Your trait scores</h2>
-        <p className="mt-0.5 text-sm text-muted">
-          Assessment of {assessment.termName}, submitted {formatDate(assessment.submittedAt)}.
-        </p>
-      </div>
+      <CardHeader
+        title="Your trait scores"
+        description={`Assessment of ${assessment.termName}, submitted ${formatDate(assessment.submittedAt)}.`}
+      />
       {assessment.traits.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-muted">No trait scores were recorded.</p>
+        <p className="px-4 py-4 text-sm text-muted sm:px-5">No trait scores were recorded.</p>
       ) : (
-        <ul className="space-y-3 px-5 py-4" aria-label="Trait scores">
+        <ul className="space-y-3 px-4 py-4 sm:px-5" aria-label="Trait scores">
           {assessment.traits.map((t) => (
             <li key={t.traitId}>
               <p className="mb-1 text-sm text-ink">{t.traitName}</p>

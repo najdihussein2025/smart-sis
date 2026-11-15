@@ -16,7 +16,8 @@ namespace SmartSis.Tests.Features.Auth;
 public sealed class AuthApiTests(SisApiFactory factory) : IClassFixture<SisApiFactory>
 {
     [Theory]
-    [Trait("TC", "TC_01")]
+    [Trait("TC", "TC_05")]
+    [Trait("TC", "TC_06")]
     [InlineData(SisApiFactory.StudentId, "Student")]
     [InlineData(SisApiFactory.InstructorId, "Instructor")]
     [InlineData(SisApiFactory.AdminId, "Admin")]
@@ -33,6 +34,7 @@ public sealed class AuthApiTests(SisApiFactory factory) : IClassFixture<SisApiFa
 
     [Theory]
     [Trait("TC", "TC_02")]
+    [Trait("TC", "TC_03")]
     [InlineData(SisApiFactory.StudentId, "wrong-password")]
     [InlineData(999999, DevSeeder.DevPassword)]
     public async Task Login_BadCredentials_Returns401WithGenericMessage(long universityId, string password)

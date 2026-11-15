@@ -46,6 +46,11 @@ describe('TeachingSchedulePage', () => {
     expect(within(list).getByText('14:00–16:00')).toBeInTheDocument()
     expect(within(list).getByText('Lab-3')).toBeInTheDocument()
     expect(within(list).queryByText('Instructor to be announced')).not.toBeInTheDocument()
+    expect(within(list).getByRole('link', { name: 'Take attendance for CSC 101 A Lab' })).toHaveAttribute(
+      'href',
+      '/instructor/attendance?section=11&meeting=2',
+    )
+    expect(within(list).getAllByRole('link', { name: 'Grades for CSC 101 A' })[0]).toHaveAttribute('href', '/instructor/grading?section=11')
   })
 
   it('shows an empty day', async () => {

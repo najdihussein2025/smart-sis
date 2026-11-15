@@ -57,6 +57,11 @@ describe('AdminCareerPage', () => {
 
     expect(await screen.findByText('Question number 1?')).toBeInTheDocument()
     expect(screen.getByText(/Students can't take the assessment until at least 20 questions are active \(2 now\)/)).toBeInTheDocument()
+    // One warning (not an error) with the action that fixes it, next to the header button.
+    expect(screen.getByRole('status', { name: '' })).toHaveTextContent('The assessment is closed to students')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'New question' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Delete question 1' })).toHaveTextContent('Delete')
     // Answered questions can't be deleted, only edited (deactivated).
     expect(screen.getByRole('button', { name: 'Delete question 1' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Delete question 2' })).not.toBeInTheDocument()
@@ -76,7 +81,7 @@ describe('AdminCareerPage', () => {
     await screen.findByText('Question number 1?')
     expect(screen.queryByText(/Students can't take the assessment/)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'New question' }))
+    await user.click(screen.getAllByRole('button', { name: 'New question' })[0]!)
     const dialog = await screen.findByRole('dialog')
     await user.type(within(dialog).getByLabelText('Question'), 'What do you enjoy?')
     await user.type(within(dialog).getByLabelText('Option 1'), 'Numbers')
@@ -167,7 +172,7 @@ describe('AdminCareerPage', () => {
     )
     const { user } = renderAt('/admin/career', { as: 'Admin' })
 
-    await user.click(await screen.findByRole('tab', { name: 'Careers & roadmaps' }))
+    await user.click(await screen.findByRole('tab', { name: 'Careers' }))
     expect(await screen.findByText('Analytical thinking 8')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Edit Software Engineer' }))
     const dialog = await screen.findByRole('dialog')

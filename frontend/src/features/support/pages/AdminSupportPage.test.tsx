@@ -64,9 +64,26 @@ function mockInbox(items: AdminSupportRequest[] = [row(1, 'Cannot add CSC 310'),
 }
 
 describe('AdminSupportPage — inbox', () => {
+  it('opens on "Needs reply" (open and unassigned) with its count on the Requests tab', async () => {
+    const { queries } = mockInbox()
+    renderAt('/admin/support', { as: 'Admin' })
+
+    const first = (await screen.findByRole('link', { name: 'Cannot add CSC 310' })).closest('tr')!
+    expect(screen.queryByRole('link', { name: 'Lab fee charged twice' })).not.toBeInTheDocument()
+    expect(queries[0]?.get('status')).toBe('Open')
+    expect(queries[0]?.get('assigned')).toBe('Unassigned')
+    // One request for the list and the tab count.
+    expect(queries).toHaveLength(1)
+    expect(screen.getByRole('tab', { name: 'Requests, 1 need a reply' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Status')).toHaveValue('Open')
+    // How long the student has been waiting, from the last activity.
+    expect(within(first).getByText(/^waiting \d+(m|h|d)$/)).toBeInTheDocument()
+  })
+
   it('lists requests with student, status and assignee', async () => {
     mockInbox()
-    renderAt('/admin/support', { as: 'Admin' })
+    const { user } = renderAt('/admin/support', { as: 'Admin' })
+    await user.click(await screen.findByRole('button', { name: 'Show all requests' }))
 
     const first = (await screen.findByRole('link', { name: 'Cannot add CSC 310' })).closest('tr')!
     expect(first.querySelector('a')).toHaveAttribute('href', '/admin/support/1')
@@ -75,7 +92,7 @@ describe('AdminSupportPage — inbox', () => {
     expect(within(first).getByText('Open')).toBeInTheDocument()
     expect(within(first).getByText('Unassigned')).toBeInTheDocument()
 
-    const second = screen.getByRole('link', { name: 'Lab fee charged twice' }).closest('tr')!
+    const second = (await screen.findByRole('link', { name: 'Lab fee charged twice' })).closest('tr')!
     expect(within(second).getByText('In progress')).toBeInTheDocument()
     expect(within(second).getByText('Demo Admin')).toBeInTheDocument()
   })
@@ -84,6 +101,7 @@ describe('AdminSupportPage — inbox', () => {
     const { queries } = mockInbox()
     const { user } = renderAt('/admin/support', { as: 'Admin' })
     await screen.findByRole('link', { name: 'Cannot add CSC 310' })
+    await user.click(screen.getByRole('button', { name: 'Show all requests' }))
 
     await user.selectOptions(screen.getByLabelText('Status'), 'In progress')
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Cannot add CSC 310' })).not.toBeInTheDocument())
@@ -106,8 +124,24 @@ describe('AdminSupportPage — inbox', () => {
 
   it('shows an empty inbox', async () => {
     mockInbox([])
-    renderAt('/admin/support', { as: 'Admin' })
+    const { user } = renderAt('/admin/support', { as: 'Admin' })
+    expect(await screen.findByText('Nothing needs a reply')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: 'Show all requests' })[0]!)
     expect(await screen.findByText('The inbox is empty')).toBeInTheDocument()
+  })
+
+  it('offers "Clear filters" when nothing matches the filters', async () => {
+    mockInbox()
+    const { user } = renderAt('/admin/support', { as: 'Admin' })
+    await screen.findByRole('link', { name: 'Cannot add CSC 310' })
+
+    await user.type(screen.getByLabelText('Search'), 'zzz')
+    expect(await screen.findByText('No requests match')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+
+    expect(await screen.findByRole('link', { name: 'Lab fee charged twice' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toHaveValue('')
+    expect(screen.getByLabelText('Status')).toHaveValue('')
   })
 
   it('shows an error with a retry button when the list fails', async () => {
