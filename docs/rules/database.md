@@ -49,6 +49,9 @@
   `Shared/Data/Seed/<Feature>DevSeed.cs`. DevSeeder discovers them and runs them by `Order` after the base data
   (6 students 3001–3006, a past term with completed CSC 101, current-term enrollments).
 
+- Extra "click through everything" data for the three demo accounts → `FullDemoDevSeed` (Order 800), opt-in via
+  `Seed:FullDemo` (true in `appsettings.Development.json`, forced false in `SisApiFactory` so tests keep the small seed).
+
 ## Embeddings
 `KnowledgeChunks.Embedding` is `varbinary(max)` (float32 little-endian). Switch to `VECTOR` only after the
 team confirms SQL Server 2025 (open item in PROJECT.md §11).

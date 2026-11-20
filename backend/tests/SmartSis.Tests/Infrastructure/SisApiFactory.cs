@@ -29,6 +29,8 @@ public sealed class SisApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(Environments.Development);
+        // The extra demo data (FullDemoDevSeed) is for people clicking through the app; tests keep the small base seed.
+        builder.UseSetting("Seed:FullDemo", "false");
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<SisDbContext>>();
